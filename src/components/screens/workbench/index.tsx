@@ -1,4 +1,3 @@
-import "./workbench.css";
 import { useEffect, useRef, useState } from "react";
 import { baseName } from "../../../features/files/lib/path";
 import { closeWindow, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
@@ -13,6 +12,8 @@ import { TabBar } from "./tabBar";
 import { TitleBar } from "./titleBar";
 import { useEditorTabs } from "./useEditorTabs";
 import { Watermark } from "./watermark";
+// Monaco も codicon の CSS を読み込むので、上書きできるよう最後に置く
+import "./workbench.css";
 
 const SIDEBAR_DEFAULT_WIDTH = 300;
 const SIDEBAR_MIN_WIDTH = 170;
