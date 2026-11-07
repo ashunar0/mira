@@ -1,33 +1,29 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 
-type ServerMessage = { generation: number; message: string };
+type ServerMessage = { id: number; message: string };
 
-/** root で言語サーバーを起動し直す。返る番号で、どのサーバーとのやりとりかを見分ける */
+/** root で言語サーバーを起動する。返る番号でやりとりし、使い終わったら stopLanguageServer で止める */
 export function startLanguageServer(root: string): Promise<number> {
   return invoke("lsp_start", { root });
 }
 
-export function sendToLanguageServer(generation: number, message: string): Promise<void> {
-  return invoke("lsp_send", { generation, message });
+export function sendToLanguageServer(id: number, message: string): Promise<void> {
+  return invoke("lsp_send", { id, message });
 }
 
-export function stopLanguageServer(generation: number): Promise<void> {
-  return invoke("lsp_stop", { generation });
+export function stopLanguageServer(id: number): Promise<void> {
+  return invoke("lsp_stop", { id });
 }
 
-/** generation のサーバーからのメッセージと終了を受け取る。購読を解除する関数を返す */
-export function listenLanguageServer(
-  generation: number,
-  onMessage: (message: string) => void,
-  onExit: () => void,
-): () => void {
+/** id のサーバーからのメッセージと終了を受け取る。購読を解除する関数を返す */
+export function listenLanguageServer(id: number, onMessage: (message: string) => void, onExit: () => void): () => void {
   const unlisten = Promise.all([
     listen<ServerMessage>("lsp-message", ({ payload }) => {
-      if (payload.generation === generation) onMessage(payload.message);
+      if (payload.id === id) onMessage(payload.message);
     }),
     listen<number>("lsp-exit", ({ payload }) => {
-      if (payload === generation) onExit();
+      if (payload === id) onExit();
     }),
   ]);
   return () => {

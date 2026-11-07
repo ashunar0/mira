@@ -50,8 +50,13 @@ export function Workbench() {
   const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
   const refreshGitStatus = useRefreshGitStatus();
   const refreshSearch = useRefreshSearch();
+  // 別のファイルの定義へ飛んだら、そのままそこを読み進めるのでタブに固定する
+  const notifyLanguageServer = useLanguageServer(rootPath, (path, { line, column }) =>
+    openAt(path, { line, column, length: 0 }, { pin: true }),
+  );
   useWorkspaceWatcher(rootPath, (changes) => {
     editorTabs.handleFileChanges(changes);
+    notifyLanguageServer(changes);
     void refreshGitStatus();
     void refreshSearch();
   });
@@ -112,8 +117,6 @@ export function Workbench() {
   const openSearchMatch = (path: string, match: SearchMatch, options: { pin: boolean }) =>
     openAt(path, { line: match.line, column: match.column, length: match.length }, options);
 
-  // 別のファイルの定義へ飛んだら、そのままそこを読み進めるのでタブに固定する
-  useLanguageServer(rootPath, (path, { line, column }) => openAt(path, { line, column, length: 0 }, { pin: true }));
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
 

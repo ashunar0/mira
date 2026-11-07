@@ -19,6 +19,8 @@ export type FileError = {
 
 export type FileChanges = {
   paths: string[];
+  /** paths のうち、もうないもの。作成と変更は区別しない（macOS が区別して報告できないため） */
+  removed: string[];
   /** OS がイベントを取りこぼした。paths は当てにせず全体を読み直す */
   needsRescan: boolean;
   /** コミットやステージなどで Git の状態が変わった */

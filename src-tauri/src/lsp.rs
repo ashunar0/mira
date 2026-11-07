@@ -2,8 +2,10 @@
 //! メッセージの中身は解釈しない。LSP のやりとりはフロントエンドが受け持つ。
 
 use std::{
+    collections::HashMap,
     env,
     io::{BufRead, BufReader, Write},
+    path::{Path, PathBuf},
     process::{Child, ChildStdin, Command, Stdio},
     sync::{
         atomic::{AtomicU64, Ordering},
@@ -13,7 +15,7 @@ use std::{
 };
 
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 const PATH_MARKER: &str = "__MIRA_PATH__";
 
@@ -42,9 +44,29 @@ fn login_path() -> &'static str {
     })
 }
 
+/// npm でグローバルに入れた TypeScript 7 の実行ファイル。VS Code が同梱の版を使うのと同じく、
+/// フォルダの node_modules の版は使わない（開いただけでそのリポジトリのコードを動かさないため）。
+fn global_typescript(path: &str) -> Option<&'static Path> {
+    static TSC: OnceLock<Option<PathBuf>> = OnceLock::new();
+    TSC.get_or_init(|| {
+        let output = Command::new("npm").args(["root", "-g"]).env("PATH", path).output().ok()?;
+        let root = String::from_utf8(output.stdout).ok()?;
+        let arch = match env::consts::ARCH {
+            "aarch64" => "arm64",
+            "x86_64" => "x64",
+            other => other,
+        };
+        // 本体は OS ごとのパッケージに入っている。npm の入れ方によって置き場所が 2 通りある
+        let package = format!("@typescript/typescript-darwin-{arch}/lib/tsc");
+        let root = Path::new(root.trim());
+        [root.join("typescript/node_modules").join(&package), root.join(&package)]
+            .into_iter()
+            .find(|file| file.is_file())
+    })
+    .as_deref()
+}
+
 struct Server {
-    /// フォルダを開き直すと新しいサーバーに替わる。前のサーバーの遅れて届いたメッセージを捨てるための番号
-    generation: u64,
     child: Child,
     stdin: ChildStdin,
 }
@@ -56,16 +78,17 @@ impl Drop for Server {
     }
 }
 
-/// 動いている言語サーバー。いまは TypeScript の 1 つだけ
+/// 動いている言語サーバー。起動したクライアントが番号で持ち、自分のものだけを止める。
+/// 「最新の 1 つだけを残す」作りにしないのは、起動が重なると終わる順番が呼んだ順と限らないため
 #[derive(Default)]
-pub struct LanguageServer {
-    server: Mutex<Option<Server>>,
-    generations: AtomicU64,
+pub struct LanguageServers {
+    servers: Mutex<HashMap<u64, Server>>,
+    next_id: AtomicU64,
 }
 
 #[derive(Clone, Serialize)]
 struct ServerMessage {
-    generation: u64,
+    id: u64,
     message: String,
 }
 
@@ -97,53 +120,51 @@ fn write_message(writer: &mut impl Write, message: &str) -> std::io::Result<()> 
     writer.flush()
 }
 
-/// root で言語サーバーを起動し直す。返した番号を lsp_send に渡す
+/// root で言語サーバーを起動する。返した番号を lsp_send と lsp_stop に渡す
 #[tauri::command(async)]
-pub fn lsp_start(app: AppHandle, state: State<'_, LanguageServer>, root: String) -> Result<u64, String> {
-    // 前のサーバーは、新しいものを起動する前に止める
-    state.server.lock().unwrap().take();
-
-    let mut child = Command::new("typescript-language-server")
-        .arg("--stdio")
+pub fn lsp_start(app: AppHandle, state: State<'_, LanguageServers>, root: String) -> Result<u64, String> {
+    let tsc = global_typescript(login_path())
+        .ok_or("TypeScript 7 is not installed. Run: npm i -g typescript@7")?;
+    let mut child = Command::new(tsc)
+        .args(["--lsp", "--stdio"])
         .current_dir(&root)
-        .env("PATH", login_path())
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
-        .map_err(|error| format!("Unable to start typescript-language-server: {error}"))?;
+        .map_err(|error| format!("Unable to start the TypeScript language server: {error}"))?;
     let stdin = child.stdin.take().ok_or("No stdin")?;
     let stdout = child.stdout.take().ok_or("No stdout")?;
-    let generation = state.generations.fetch_add(1, Ordering::Relaxed) + 1;
+    let id = state.next_id.fetch_add(1, Ordering::Relaxed) + 1;
 
     thread::spawn(move || {
         let mut reader = BufReader::new(stdout);
         while let Some(message) = read_message(&mut reader) {
-            let _ = app.emit("lsp-message", ServerMessage { generation, message });
+            let _ = app.emit("lsp-message", ServerMessage { id, message });
         }
-        let _ = app.emit("lsp-exit", generation);
+        let _ = app.emit("lsp-exit", id);
     });
 
-    *state.server.lock().unwrap() = Some(Server { generation, child, stdin });
-    Ok(generation)
+    state.servers.lock().unwrap().insert(id, Server { child, stdin });
+    Ok(id)
 }
 
-/// 止まったサーバーや、入れ替わった前のサーバー宛てのメッセージは捨てる
+/// 止まったサーバー宛てのメッセージは捨てる
 #[tauri::command]
-pub fn lsp_send(state: State<'_, LanguageServer>, generation: u64, message: String) {
-    let mut server = state.server.lock().unwrap();
-    if let Some(server) = server.as_mut().filter(|server| server.generation == generation) {
+pub fn lsp_send(state: State<'_, LanguageServers>, id: u64, message: String) {
+    if let Some(server) = state.servers.lock().unwrap().get_mut(&id) {
         let _ = write_message(&mut server.stdin, &message);
     }
 }
 
-/// 入れ替わった後に届いた、前のサーバーへの停止は無視する
 #[tauri::command]
-pub fn lsp_stop(state: State<'_, LanguageServer>, generation: u64) {
-    let mut server = state.server.lock().unwrap();
-    if server.as_ref().is_some_and(|server| server.generation == generation) {
-        server.take();
-    }
+pub fn lsp_stop(state: State<'_, LanguageServers>, id: u64) {
+    state.servers.lock().unwrap().remove(&id);
+}
+
+/// 画面を読み込み直すと、前の画面のクライアントは後片付けをせずに消える。持ち主のいないサーバーを止める
+pub fn stop_all(app: &AppHandle) {
+    app.state::<LanguageServers>().servers.lock().unwrap().clear();
 }
 
 #[cfg(test)]

@@ -15,7 +15,12 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(watcher::WorkspaceWatcher::default())
         .manage(launch::PendingFolder::default())
-        .manage(lsp::LanguageServer::default())
+        .manage(lsp::LanguageServers::default())
+        .on_page_load(|webview, payload| {
+            if payload.event() == tauri::webview::PageLoadEvent::Started {
+                lsp::stop_all(tauri::Manager::app_handle(webview));
+            }
+        })
         .setup(|app| {
             menu::install(app)?;
             Ok(())

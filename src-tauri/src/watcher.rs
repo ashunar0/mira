@@ -31,6 +31,8 @@ pub struct WorkspaceWatcher(Mutex<Option<WorkspaceDebouncer>>);
 #[serde(rename_all = "camelCase")]
 pub struct FileChanges {
     paths: Vec<String>,
+    /// paths のうち、もうないもの。macOS は作成と変更を区別して報告できないので、ほかは区別しない
+    removed: Vec<String>,
     /// OS がイベントを取りこぼした。paths は当てにせず全体を読み直す必要がある
     needs_rescan: bool,
     /// コミットやステージなどで Git の状態が変わった
@@ -101,9 +103,12 @@ fn start(
                 (!ignore_rules.is_ignored(path)).then(|| mapped.to_string_lossy().into_owned())
             }));
         }
+        // イベントの種類は当てにならない（作ってすぐ消すこともある）ので、今あるかで決める
+        let removed = paths.iter().filter(|path| !Path::new(path).exists()).cloned().collect();
         if needs_rescan || git_changed || !paths.is_empty() {
             on_change(FileChanges {
                 paths: paths.into_iter().collect(),
+                removed,
                 needs_rescan,
                 git_changed,
             });
@@ -167,6 +172,29 @@ mod tests {
         let expected = root.join("a.txt").to_string_lossy().into_owned();
         assert!(paths.contains(&expected), "{paths:?}");
         assert!(!paths.iter().any(|path| path.contains("/.git/")), "{paths:?}");
+    }
+
+    #[test]
+    fn reports_which_files_are_gone() {
+        let root = temp_root("kinds");
+        fs::write(root.join("old.ts"), "x").unwrap();
+        fs::write(root.join("kept.ts"), "x").unwrap();
+        let (sender, receiver) = mpsc::channel();
+        let _watcher = start(&root, move |changes| sender.send(changes).unwrap()).unwrap();
+        std::thread::sleep(Duration::from_millis(500));
+
+        fs::write(root.join("new.ts"), "x").unwrap();
+        fs::remove_file(root.join("old.ts")).unwrap();
+        fs::write(root.join("kept.ts"), "y").unwrap();
+
+        let (mut paths, mut removed) = (BTreeSet::new(), BTreeSet::new());
+        while let Ok(changes) = receiver.recv_timeout(Duration::from_secs(2)) {
+            paths.extend(changes.paths);
+            removed.extend(changes.removed);
+        }
+        let path = |name: &str| root.join(name).to_string_lossy().into_owned();
+        assert!(paths.is_superset(&BTreeSet::from([path("new.ts"), path("old.ts"), path("kept.ts")])), "{paths:?}");
+        assert_eq!(removed, BTreeSet::from([path("old.ts")]));
     }
 
     #[test]
