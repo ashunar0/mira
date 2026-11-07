@@ -1,6 +1,7 @@
 mod files;
 mod git;
 mod ignore_rules;
+mod launch;
 mod menu;
 mod search;
 mod watcher;
@@ -12,6 +13,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(watcher::WorkspaceWatcher::default())
+        .manage(launch::PendingFolder::default())
         .setup(|app| {
             menu::install(app)?;
             Ok(())
@@ -25,11 +27,18 @@ pub fn run() {
             files::create_directory,
             files::rename_path,
             files::trash_path,
+            launch::take_pending_folder,
             git::git_status,
             git::git_head_text,
             search::search_workspace,
             watcher::watch_workspace,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Opened { urls } = event {
+                launch::handle_opened(app, &urls);
+            }
+        });
 }

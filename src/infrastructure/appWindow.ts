@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
@@ -24,4 +25,14 @@ export function onWindowCloseRequested(handler: () => Promise<boolean>): () => v
       if (!(await handler())) event.preventDefault();
     }),
   );
+}
+
+/** `mira <folder>` で渡されたフォルダを受け取る。起動前に渡された分も、聞き始めたときに一度受け取る */
+export function onFolderRequested(handler: (path: string) => void): () => void {
+  const take = async () => {
+    const path = await invoke<string | null>("take_pending_folder");
+    if (path) handler(path);
+  };
+  void take();
+  return subscribe(() => listen("pending-folder", () => void take()));
 }

@@ -4,7 +4,7 @@ import { useWorkspaceWatcher } from "../../../features/files/watcher";
 import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { useRefreshSearch } from "../../../features/search/queries";
 import type { SearchMatch } from "../../../features/search/type";
-import { closeWindow, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
+import { closeWindow, onFolderRequested, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import type { monaco } from "../../../infrastructure/monaco/setup";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
 import { ActivityBar, type SidebarView } from "./activityBar";
@@ -115,12 +115,13 @@ export function Workbench() {
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
 
-  const openFolder = async () => {
-    const folder = await pickFolder();
-    if (!folder || !(await editorTabs.confirmDiscardAll())) return;
+  const openFolder = async (folder: string | null) => {
+    if (!folder || folder === rootPath || !(await editorTabs.confirmDiscardAll())) return;
     editorTabs.closeAll();
     setRootPath(folder);
   };
+
+  const chooseFolder = async () => openFolder(await pickFolder());
 
   const closeActiveOrWindow = () => {
     if (activeTab) void editorTabs.closeTab(activeTab.path);
@@ -134,7 +135,7 @@ export function Workbench() {
 
   const getCommands = (): Command[] => {
     const appCommands: Command[] = [
-      { id: "open-folder", label: "File: Open Folder...", keybinding: ["⌘", "O"], run: () => void openFolder() },
+      { id: "open-folder", label: "File: Open Folder...", keybinding: ["⌘", "O"], run: () => void chooseFolder() },
       { id: "save", label: "File: Save", keybinding: ["⌘", "S"], run: editorTabs.saveActive },
       { id: "close-tab", label: "View: Close Editor", keybinding: ["⌘", "W"], run: closeActiveOrWindow },
       { id: "toggle-sidebar", label: "View: Toggle Primary Side Bar Visibility", keybinding: ["⌘", "B"], run: toggleSidebar },
@@ -172,7 +173,7 @@ export function Workbench() {
   // ネイティブメニューは一度だけ購読し、常に最新の描画のハンドラを呼ぶ
   const menuHandlers = useRef<Record<string, () => void>>({});
   menuHandlers.current = {
-    "open-folder": () => void openFolder(),
+    "open-folder": () => void chooseFolder(),
     save: editorTabs.saveActive,
     "close-tab": closeActiveOrWindow,
     "toggle-sidebar": toggleSidebar,
@@ -184,6 +185,10 @@ export function Workbench() {
     quit: () => void closeWindow(),
   };
   useEffect(() => onNativeMenu((id) => menuHandlers.current[id]?.()), []);
+
+  const openFolderRef = useRef(openFolder);
+  openFolderRef.current = openFolder;
+  useEffect(() => onFolderRequested((path) => void openFolderRef.current(path)), []);
 
   // F1 は Monaco 自身のパレットより先に受け取る（ネイティブメニューには同じ機能を 2 つのキーで置けない）
   useEffect(() => {
@@ -224,7 +229,7 @@ export function Workbench() {
                   rootPath={rootPath}
                   activePath={activeTab?.path ?? null}
                   onOpenFile={(path, options) => void editorTabs.openFile(path, options)}
-                  onOpenFolder={() => void openFolder()}
+                  onOpenFolder={() => void chooseFolder()}
                   onPathRenamed={editorTabs.handlePathRenamed}
                   onPathDeleted={editorTabs.handlePathDeleted}
                   countUnsavedWithin={editorTabs.countUnsavedWithin}
