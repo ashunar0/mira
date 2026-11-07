@@ -1,5 +1,5 @@
 import { type RefObject, useEffect, useRef } from "react";
-import { DIFF_EDITOR_OPTIONS, monaco } from "../../../infrastructure/monaco/setup";
+import { DIFF_EDITOR_OPTIONS, disposeDiffEditor, monaco } from "../../../infrastructure/monaco/setup";
 import { readStatus } from "./editorPane";
 import type { EditorStatus } from "./statusBar";
 
@@ -50,7 +50,7 @@ export function DiffPane({ model, originalText, focusRequest, editorRef, onStatu
     ];
     return () => {
       subscriptions.forEach((subscription) => subscription.dispose());
-      diffEditor.dispose();
+      disposeDiffEditor(diffEditor);
       editorRef.current = null;
     };
   }, [editorRef, onStatusChange]);

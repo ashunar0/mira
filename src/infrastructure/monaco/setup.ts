@@ -78,3 +78,16 @@ export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructio
 };
 
 export { monaco };
+
+/**
+ * diff エディタを捨てる。DiffPane と、変更の印の計算（useGitGutter）はこれで捨てる。
+ *
+ * Monaco 単体はエディタを作るたびに、ホバーの部品（ボタンのツールチップなど）の作り方を、そのエディタの内部の
+ * 仕組みに紐づけて登録し直す（VS Code 本体にはない仮の仕組み）。diff エディタの中の 2 つのエディタは diff 専用の
+ * 仕組みに紐づくので、diff エディタを捨てると、片付け済みの仕組みを指したまま残る。すると型エラーの上のホバー
+ * （下にボタンが並ぶ）が組み立てに失敗して出なくなる。全体の仕組みで作るエディタを一瞬作って、登録を戻す。
+ */
+export function disposeDiffEditor(diffEditor: monaco.editor.IStandaloneDiffEditor): void {
+  diffEditor.dispose();
+  monaco.editor.create(document.createElement("div"), { model: null }).dispose();
+}

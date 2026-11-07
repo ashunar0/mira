@@ -1,5 +1,5 @@
 import { type RefObject, useEffect } from "react";
-import { DIFF_EDITOR_OPTIONS, monaco } from "../../../infrastructure/monaco/setup";
+import { DIFF_EDITOR_OPTIONS, disposeDiffEditor, monaco } from "../../../infrastructure/monaco/setup";
 
 function gutterClass(change: monaco.editor.ILineChange): string {
   if (change.modifiedEndLineNumber === 0) return "wb-gutter-removed";
@@ -44,7 +44,7 @@ export function useGitGutter(
       // 画面を閉じるときは、エディタが先に捨てられている
       if (editorRef.current === editor) marks.clear();
       differ.setModel(null);
-      differ.dispose();
+      disposeDiffEditor(differ);
       original.dispose();
     };
   }, [editorRef, model, originalText]);
