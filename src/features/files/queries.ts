@@ -38,7 +38,7 @@ export function useFileReader() {
 export function useRefreshDirectories() {
   const queryClient = useQueryClient();
   return useCallback(
-    () => queryClient.invalidateQueries({ queryKey: ["files", "directory"] }),
+    () => queryClient.invalidateQueries({ queryKey: fileKeys.directories }),
     [queryClient],
   );
 }

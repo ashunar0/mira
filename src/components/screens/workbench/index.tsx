@@ -29,8 +29,8 @@ export function Workbench() {
   const [editorStatus, setEditorStatus] = useState<EditorStatus | null>(null);
   const [quickOpenText, setQuickOpenText] = useState<string | null>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const editorTabs = useEditorTabs();
-  const { tabs, activeTab, activeModel, activeHasBom, focusRequest } = editorTabs;
+  const editorTabs = useEditorTabs(editorRef);
+  const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
   useWorkspaceWatcher(rootPath, editorTabs.handleFileChanges);
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
@@ -129,6 +129,9 @@ export function Workbench() {
               activePath={activeTab?.path ?? null}
               onOpenFile={(path, options) => void editorTabs.openFile(path, options)}
               onOpenFolder={() => void openFolder()}
+              onPathRenamed={editorTabs.handlePathRenamed}
+              onPathDeleted={editorTabs.handlePathDeleted}
+              countUnsavedWithin={editorTabs.countUnsavedWithin}
             />
           </div>
         )}
@@ -148,6 +151,7 @@ export function Workbench() {
               model={activeModel}
               focusRequest={focusRequest}
               editorRef={editorRef}
+              viewStates={viewStates}
               onStatusChange={setEditorStatus}
             />
             {!activeTab && <Watermark />}

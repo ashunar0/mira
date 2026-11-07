@@ -7,6 +7,8 @@ mod watcher;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
         .manage(watcher::WorkspaceWatcher::default())
         .setup(|app| {
             menu::install(app)?;
@@ -17,6 +19,10 @@ pub fn run() {
             files::list_workspace_files,
             files::read_text_file,
             files::write_text_file,
+            files::create_file,
+            files::create_directory,
+            files::rename_path,
+            files::trash_path,
             watcher::watch_workspace,
         ])
         .run(tauri::generate_context!())

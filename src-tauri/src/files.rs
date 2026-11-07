@@ -29,6 +29,7 @@ pub fn is_excluded_name(name: &OsStr) -> bool {
 #[serde(rename_all = "camelCase")]
 pub enum FileErrorKind {
     NotFound,
+    AlreadyExists,
     Binary,
     TooLarge,
     Conflict,
@@ -58,6 +59,7 @@ impl From<io::Error> for FileError {
     fn from(error: io::Error) -> Self {
         let kind = match error.kind() {
             io::ErrorKind::NotFound => FileErrorKind::NotFound,
+            io::ErrorKind::AlreadyExists => FileErrorKind::AlreadyExists,
             _ => FileErrorKind::Io,
         };
         Self::new(kind, error.to_string())
@@ -193,6 +195,58 @@ pub fn write_text_file(
     Ok(mtime_ms(&fs::metadata(target)?)?)
 }
 
+fn create_parents(path: &Path) -> io::Result<()> {
+    match path.parent() {
+        Some(parent) => fs::create_dir_all(parent),
+        None => Ok(()),
+    }
+}
+
+/// 名前に a/b.ts のようなパスが入っていたら途中のフォルダも作る。既にあれば上書きせず失敗する。
+#[tauri::command(async)]
+pub fn create_file(path: String) -> Result<(), FileError> {
+    let target = Path::new(&path);
+    create_parents(target)?;
+    fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(target)?;
+    Ok(())
+}
+
+#[tauri::command(async)]
+pub fn create_directory(path: String) -> Result<(), FileError> {
+    let target = Path::new(&path);
+    create_parents(target)?;
+    fs::create_dir(target)?;
+    Ok(())
+}
+
+/// 移動先に別のファイルがあれば上書きせず失敗する。
+/// a.ts → A.ts のような大文字小文字だけの変更は、macOS では同じファイルを指すので許す。
+#[tauri::command(async)]
+pub fn rename_path(from: String, to: String) -> Result<(), FileError> {
+    let (source, target) = (Path::new(&from), Path::new(&to));
+    let is_same_file = || {
+        matches!(
+            (fs::canonicalize(source), fs::canonicalize(target)),
+            (Ok(a), Ok(b)) if a == b
+        )
+    };
+    if fs::symlink_metadata(target).is_ok() && !is_same_file() {
+        return Err(io::Error::from(io::ErrorKind::AlreadyExists).into());
+    }
+    create_parents(target)?;
+    fs::rename(source, target)?;
+    Ok(())
+}
+
+/// 完全には消さず、ゴミ箱へ移す。
+#[tauri::command(async)]
+pub fn trash_path(path: String) -> Result<(), FileError> {
+    trash::delete(&path).map_err(|error| FileError::new(FileErrorKind::Io, error.to_string()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -277,6 +331,65 @@ mod tests {
             .map(|path| path.strip_prefix(&format!("{}/", root.display())).unwrap())
             .collect();
         assert_eq!(relative, [".env.example", ".gitignore", "src/a.ts"]);
+    }
+
+    fn temp_dir(name: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!("mira-ops-{}-{name}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    fn string(path: &Path) -> String {
+        path.to_string_lossy().into_owned()
+    }
+
+    #[test]
+    fn create_file_makes_parents_and_never_overwrites() {
+        let dir = temp_dir("create");
+        let target = dir.join("a/b/c.txt");
+        create_file(string(&target)).unwrap();
+        assert!(target.is_file());
+
+        fs::write(&target, "keep").unwrap();
+        let error = create_file(string(&target)).err().unwrap();
+        assert!(matches!(error.kind, FileErrorKind::AlreadyExists));
+        assert_eq!(fs::read(&target).unwrap(), b"keep");
+    }
+
+    #[test]
+    fn create_directory_refuses_an_existing_name() {
+        let dir = temp_dir("mkdir");
+        create_directory(string(&dir.join("x/y"))).unwrap();
+        assert!(dir.join("x/y").is_dir());
+        let error = create_directory(string(&dir.join("x/y"))).err().unwrap();
+        assert!(matches!(error.kind, FileErrorKind::AlreadyExists));
+    }
+
+    #[test]
+    fn rename_never_overwrites_another_file() {
+        let dir = temp_dir("rename");
+        fs::write(dir.join("a.txt"), "a").unwrap();
+        fs::write(dir.join("b.txt"), "b").unwrap();
+        let error = rename_path(string(&dir.join("a.txt")), string(&dir.join("b.txt")));
+        assert!(matches!(error.err().unwrap().kind, FileErrorKind::AlreadyExists));
+        assert_eq!(fs::read(dir.join("b.txt")).unwrap(), b"b");
+
+        rename_path(string(&dir.join("a.txt")), string(&dir.join("sub/c.txt"))).unwrap();
+        assert_eq!(fs::read(dir.join("sub/c.txt")).unwrap(), b"a");
+        assert!(!dir.join("a.txt").exists());
+    }
+
+    #[test]
+    fn rename_allows_changing_only_the_case() {
+        let dir = temp_dir("case");
+        fs::write(dir.join("readme.md"), "x").unwrap();
+        rename_path(string(&dir.join("readme.md")), string(&dir.join("README.md"))).unwrap();
+        let names: Vec<_> = fs::read_dir(&dir)
+            .unwrap()
+            .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(names, ["README.md"]);
     }
 
     #[test]

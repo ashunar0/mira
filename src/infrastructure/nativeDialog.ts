@@ -22,6 +22,10 @@ export function askOverwrite(text: string): Promise<boolean> {
   return ask(text, { kind: "warning", okLabel: "Overwrite", cancelLabel: "Cancel" });
 }
 
+export function askMoveToTrash(text: string): Promise<boolean> {
+  return ask(text, { kind: "warning", okLabel: "Move to Trash", cancelLabel: "Cancel" });
+}
+
 export async function showError(text: string): Promise<void> {
   await message(text, { kind: "error" });
 }

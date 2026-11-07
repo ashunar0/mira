@@ -6,6 +6,7 @@ type Props = {
   model: monaco.editor.ITextModel | null;
   focusRequest: number;
   editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>;
+  viewStates: RefObject<WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>>;
   onStatusChange: (status: EditorStatus | null) => void;
 };
 
@@ -31,10 +32,8 @@ function readStatus(editor: monaco.editor.IStandaloneCodeEditor): EditorStatus |
   };
 }
 
-export function EditorPane({ model, focusRequest, editorRef, onStatusChange }: Props) {
+export function EditorPane({ model, focusRequest, editorRef, viewStates, onStatusChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // タブを行き来してもカーソルとスクロール位置を保つ。モデルが捨てられたら一緒に消える
-  const viewStates = useRef(new WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>());
 
   useEffect(() => {
     const editor = monaco.editor.create(containerRef.current!, EDITOR_OPTIONS);
@@ -64,7 +63,7 @@ export function EditorPane({ model, focusRequest, editorRef, onStatusChange }: P
     const nextState = model && viewStates.current.get(model);
     if (nextState) editor.restoreViewState(nextState);
     if (!model) onStatusChange(null);
-  }, [editorRef, model, onStatusChange]);
+  }, [editorRef, model, onStatusChange, viewStates]);
 
   useEffect(() => {
     if (focusRequest > 0) editorRef.current?.focus();

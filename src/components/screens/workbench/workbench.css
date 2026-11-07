@@ -275,6 +275,45 @@ button {
   text-overflow: ellipsis;
 }
 
+.wb-name-input {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.wb-name-input input {
+  width: 100%;
+  height: 20px;
+  padding: 0 3px;
+  color: var(--fg);
+  font: inherit;
+  background: #313131;
+  border: 1px solid var(--accent);
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wb-name-input input[aria-invalid="true"] {
+  border-color: #be1100;
+}
+
+.wb-name-error {
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding: 3px 5px;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: normal;
+  background: #5a1d1d;
+  border: 1px solid #be1100;
+  border-top: 0;
+}
+
 .wb-tree-message {
   height: 22px;
   line-height: 22px;

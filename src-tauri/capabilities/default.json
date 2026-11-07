@@ -11,6 +11,8 @@
     "core:window:allow-internal-toggle-maximize",
     "core:window:allow-close",
     "core:window:allow-destroy",
-    "dialog:default"
+    "dialog:default",
+    "opener:allow-reveal-item-in-dir",
+    "clipboard-manager:allow-write-text"
   ]
 }

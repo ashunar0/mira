@@ -1,29 +1,37 @@
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { ancestorsWithin, baseName, parentPath } from "../../../features/files/lib/path";
-import { useDirectoryQuery, useRefreshDirectories } from "../../../features/files/queries";
+import { type KeyboardEvent, type MouseEvent, useEffect, useRef, useState } from "react";
+import { describeFileError } from "../../../features/files/lib/fileError";
+import { ancestorsWithin, baseName, parentPath, rebasePath } from "../../../features/files/lib/path";
+import {
+  useCreateDirectoryMutation,
+  useCreateFileMutation,
+  useDeletePathMutation,
+  useRenamePathMutation,
+} from "../../../features/files/mutations";
+import { useRefreshDirectories } from "../../../features/files/queries";
+import type { DirEntry } from "../../../features/files/type";
+import { askMoveToTrash, showError } from "../../../infrastructure/nativeDialog";
+import { copyText, revealInFinder, showContextMenu } from "../../../infrastructure/nativeShell";
 import { ActivityBar } from "./activityBar";
-import { FileIcon, FolderIcon } from "./fileIcon";
+import { type ExplorerEdit, ExplorerTreeLevel } from "./explorerTree";
 
 type Props = {
   rootPath: string | null;
   activePath: string | null;
   onOpenFile: (path: string, options: { pin: boolean }) => void;
   onOpenFolder: () => void;
+  onPathRenamed: (from: string, to: string) => void;
+  onPathDeleted: (path: string) => void;
+  countUnsavedWithin: (path: string) => number;
 };
 
-export function Explorer({ rootPath, activePath, onOpenFile, onOpenFolder }: Props) {
+export function Explorer(props: Props) {
+  const { rootPath, onOpenFolder } = props;
   return (
     <aside className="wb-sidebar">
       <ActivityBar />
       <div className="wb-sidebar-title">Explorer</div>
       {rootPath ? (
-        <FolderTree
-          key={rootPath}
-          rootPath={rootPath}
-          activePath={activePath}
-          onOpenFile={onOpenFile}
-          onOpenFolder={onOpenFolder}
-        />
+        <FolderTree key={rootPath} {...props} rootPath={rootPath} />
       ) : (
         <NoFolder onOpenFolder={onOpenFolder} />
       )}
@@ -44,12 +52,34 @@ function NoFolder({ onOpenFolder }: { onOpenFolder: () => void }) {
 
 type FolderTreeProps = Props & { rootPath: string };
 
-function FolderTree({ rootPath, activePath, onOpenFile, onOpenFolder }: FolderTreeProps) {
+function deleteMessage(name: string, isDirectory: boolean, unsavedCount: number): string {
+  const restore = "You can restore this file from the Trash.";
+  if (unsavedCount > 0) {
+    const target = isDirectory
+      ? `a folder ${name} with unsaved changes in ${unsavedCount} file${unsavedCount > 1 ? "s" : ""}`
+      : `${name} with unsaved changes`;
+    return `You are deleting ${target}. Do you want to continue?\n\n${restore}`;
+  }
+  const question = isDirectory
+    ? `Are you sure you want to delete '${name}' and its contents?`
+    : `Are you sure you want to delete '${name}'?`;
+  return `${question}\n\n${restore}`;
+}
+
+function FolderTree(props: FolderTreeProps) {
+  const { rootPath, activePath, onOpenFile, onPathRenamed, onPathDeleted, countUnsavedWithin } = props;
   const [isRootOpen, setIsRootOpen] = useState(true);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [selected, setSelected] = useState<{ path: string; isDirectory: boolean } | null>(null);
+  const [edit, setEdit] = useState<ExplorerEdit | null>(null);
   const treeRef = useRef<HTMLDivElement>(null);
   const refresh = useRefreshDirectories();
+  const { mutateAsync: createFile } = useCreateFileMutation();
+  const { mutateAsync: createDirectory } = useCreateDirectoryMutation();
+  const { mutateAsync: renamePath } = useRenamePathMutation();
+  const { mutateAsync: deletePath } = useDeletePathMutation();
+
+  const selectedPath = selected?.path ?? null;
 
   const setExpansion = (path: string, isOpen: boolean) => {
     setExpanded((current) => {
@@ -60,16 +90,18 @@ function FolderTree({ rootPath, activePath, onOpenFile, onOpenFolder }: FolderTr
     });
   };
 
+  const focusTree = () => treeRef.current?.focus();
+
   // アクティブなファイルを Explorer に表示する（explorer.autoReveal）
   useEffect(() => {
     if (!activePath || !activePath.startsWith(`${rootPath}/`)) return;
-    setSelectedPath(activePath);
+    setSelected({ path: activePath, isDirectory: false });
     setIsRootOpen(true);
     setExpanded((current) => new Set([...current, ...ancestorsWithin(rootPath, activePath)]));
   }, [activePath, rootPath]);
 
   const activateRow = (path: string, isDirectory: boolean, pin: boolean) => {
-    setSelectedPath(path);
+    setSelected({ path, isDirectory });
     if (isDirectory) {
       if (!pin) setExpansion(path, !expanded.has(path));
     } else {
@@ -77,13 +109,114 @@ function FolderTree({ rootPath, activePath, onOpenFile, onOpenFolder }: FolderTr
     }
   };
 
+  /** 新規作成の置き場所: 選んでいるのがフォルダならその中、ファイルなら同じ階層 */
+  const creationParent = (target: { path: string; isDirectory: boolean } | null) => {
+    if (!target) return rootPath;
+    return target.isDirectory ? target.path : parentPath(target.path);
+  };
+
+  const startCreating = (kind: "newFile" | "newFolder", parent: string) => {
+    setIsRootOpen(true);
+    setExpanded((current) => new Set([...current, ...ancestorsWithin(rootPath, `${parent}/_`)]));
+    setEdit({ kind, parent });
+  };
+
+  const commitEdit = async (name: string) => {
+    if (!edit) return;
+    if (edit.kind === "rename") {
+      const to = `${parentPath(edit.path)}/${name}`;
+      await renamePath({ from: edit.path, to });
+      onPathRenamed(edit.path, to);
+      setExpanded((current) => new Set([...current].map((p) => rebasePath(p, edit.path, to))));
+      setSelected((current) => current && { ...current, path: rebasePath(current.path, edit.path, to) });
+      focusTree();
+    } else {
+      const path = `${edit.parent}/${name}`;
+      if (edit.kind === "newFile") {
+        await createFile(path);
+        onOpenFile(path, { pin: true });
+      } else {
+        await createDirectory(path);
+        setExpanded((current) => new Set([...current, ...ancestorsWithin(rootPath, `${path}/_`)]));
+        setSelected({ path, isDirectory: true });
+        focusTree();
+      }
+    }
+    setEdit(null);
+  };
+
+  const cancelEdit = () => {
+    setEdit(null);
+    focusTree();
+  };
+
+  const startRename = (path: string) => setEdit({ kind: "rename", path, name: baseName(path) });
+
+  const deleteEntry = async (path: string, isDirectory: boolean) => {
+    const message = deleteMessage(baseName(path), isDirectory, countUnsavedWithin(path));
+    if (!(await askMoveToTrash(message))) return focusTree();
+    try {
+      await deletePath(path);
+      onPathDeleted(path);
+      setSelected(null);
+    } catch (cause) {
+      await showError(`Failed to delete '${baseName(path)}': ${describeFileError(cause)}`);
+    }
+    focusTree();
+  };
+
+  const relativePath = (path: string) => (path === rootPath ? "." : path.slice(rootPath.length + 1));
+
+  const openContextMenu = (event: MouseEvent, entry: DirEntry | null) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const target = entry && { path: entry.path, isDirectory: entry.isDirectory };
+    setSelected(target);
+    focusTree();
+    const path = entry?.path ?? rootPath;
+    void showContextMenu([
+      { label: "New File...", run: () => startCreating("newFile", creationParent(target)) },
+      { label: "New Folder...", run: () => startCreating("newFolder", creationParent(target)) },
+      "separator",
+      { label: "Reveal in Finder", run: () => void revealInFinder(path) },
+      "separator",
+      { label: "Copy Path", run: () => void copyText(path) },
+      { label: "Copy Relative Path", run: () => void copyText(relativePath(path)) },
+      ...(entry
+        ? ([
+            "separator",
+            { label: "Rename...", run: () => startRename(entry.path) },
+            { label: "Delete", run: () => void deleteEntry(entry.path, entry.isDirectory) },
+          ] as const)
+        : []),
+    ]);
+  };
+
   const handleKeyDown = (event: KeyboardEvent) => {
     const rows = [...(treeRef.current?.querySelectorAll<HTMLElement>("[data-path]") ?? [])];
     const index = rows.findIndex((row) => row.dataset.path === selectedPath);
     const current = rows[index];
+    const currentPath = current?.dataset.path;
+    const isDirectory = current?.dataset.directory === "true";
     const select = (row: HTMLElement | undefined) => {
-      if (row?.dataset.path) setSelectedPath(row.dataset.path);
+      if (row?.dataset.path) {
+        setSelected({ path: row.dataset.path, isDirectory: row.dataset.directory === "true" });
+      }
     };
+
+    // macOS の VS Code と同じ: Enter でリネーム、⌘↓ で開く、⌘⌫ でゴミ箱へ
+    if (event.metaKey && event.key === "ArrowDown") {
+      if (currentPath && !isDirectory) onOpenFile(currentPath, { pin: true });
+      else if (currentPath) setExpansion(currentPath, !expanded.has(currentPath));
+      event.preventDefault();
+      return;
+    }
+    if (event.metaKey && event.key === "Backspace") {
+      if (currentPath) void deleteEntry(currentPath, isDirectory);
+      event.preventDefault();
+      return;
+    }
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
 
     switch (event.key) {
       case "ArrowDown":
@@ -93,33 +226,39 @@ function FolderTree({ rootPath, activePath, onOpenFile, onOpenFolder }: FolderTr
         select(rows[index - 1] ?? rows[0]);
         break;
       case "ArrowRight":
-        if (current?.dataset.directory === "true") {
-          if (expanded.has(current.dataset.path!)) select(rows[index + 1]);
-          else setExpansion(current.dataset.path!, true);
+        if (currentPath && isDirectory) {
+          if (expanded.has(currentPath)) select(rows[index + 1]);
+          else setExpansion(currentPath, true);
         }
         break;
       case "ArrowLeft":
-        if (!current) break;
-        if (expanded.has(current.dataset.path!)) {
-          setExpansion(current.dataset.path!, false);
+        if (!currentPath) break;
+        if (expanded.has(currentPath)) {
+          setExpansion(currentPath, false);
         } else {
-          const parent = parentPath(current.dataset.path!);
-          if (parent !== rootPath) setSelectedPath(parent);
+          const parent = parentPath(currentPath);
+          if (parent !== rootPath) setSelected({ path: parent, isDirectory: true });
         }
         break;
       case "Enter":
+      case "F2":
+        if (currentPath) startRename(currentPath);
+        break;
       case " ":
-        if (current) {
-          const isDirectory = current.dataset.directory === "true";
-          if (isDirectory) setExpansion(current.dataset.path!, !expanded.has(current.dataset.path!));
-          else onOpenFile(current.dataset.path!, { pin: event.key === "Enter" });
-        }
+        if (currentPath && isDirectory) setExpansion(currentPath, !expanded.has(currentPath));
+        else if (currentPath) onOpenFile(currentPath, { pin: false });
         break;
       default:
         return;
     }
     event.preventDefault();
   };
+
+  const headerAction = (title: string, icon: string, onClick: () => void) => (
+    <button type="button" className="wb-icon-button" title={title} onClick={onClick}>
+      <i className={`codicon codicon-${icon}`} />
+    </button>
+  );
 
   return (
     <div className="wb-explorer">
@@ -134,30 +273,10 @@ function FolderTree({ rootPath, activePath, onOpenFile, onOpenFolder }: FolderTr
           <span>{baseName(rootPath)}</span>
         </button>
         <div className="wb-section-actions">
-          <button
-            type="button"
-            className="wb-icon-button"
-            title="Open Folder (⌘O)"
-            onClick={onOpenFolder}
-          >
-            <i className="codicon codicon-folder-opened" />
-          </button>
-          <button
-            type="button"
-            className="wb-icon-button"
-            title="Refresh Explorer"
-            onClick={() => void refresh()}
-          >
-            <i className="codicon codicon-refresh" />
-          </button>
-          <button
-            type="button"
-            className="wb-icon-button"
-            title="Collapse Folders in Explorer"
-            onClick={() => setExpanded(new Set())}
-          >
-            <i className="codicon codicon-collapse-all" />
-          </button>
+          {headerAction("New File...", "new-file", () => startCreating("newFile", creationParent(selected)))}
+          {headerAction("New Folder...", "new-folder", () => startCreating("newFolder", creationParent(selected)))}
+          {headerAction("Refresh Explorer", "refresh", () => void refresh())}
+          {headerAction("Collapse Folders in Explorer", "collapse-all", () => setExpanded(new Set()))}
         </div>
       </div>
       {isRootOpen && (
@@ -168,78 +287,21 @@ function FolderTree({ rootPath, activePath, onOpenFile, onOpenFolder }: FolderTr
           aria-label="Files Explorer"
           tabIndex={0}
           onKeyDown={handleKeyDown}
+          onContextMenu={(event) => openContextMenu(event, null)}
         >
-          <TreeLevel
+          <ExplorerTreeLevel
             path={rootPath}
             depth={0}
             expanded={expanded}
             selectedPath={selectedPath}
-            activePath={activePath}
+            edit={edit}
             onActivateRow={activateRow}
+            onRowContextMenu={openContextMenu}
+            onCommitEdit={commitEdit}
+            onCancelEdit={cancelEdit}
           />
         </div>
       )}
     </div>
   );
-}
-
-type TreeLevelProps = {
-  path: string;
-  depth: number;
-  expanded: ReadonlySet<string>;
-  selectedPath: string | null;
-  activePath: string | null;
-  onActivateRow: (path: string, isDirectory: boolean, pin: boolean) => void;
-};
-
-function rowIndent(depth: number) {
-  return { paddingLeft: 8 + depth * 8 };
-}
-
-function TreeLevel(props: TreeLevelProps) {
-  const { path, depth, expanded, selectedPath, onActivateRow } = props;
-  const { data: entries, error } = useDirectoryQuery(path);
-
-  if (error) {
-    return (
-      <div className="wb-tree-message" style={rowIndent(depth)}>
-        Unable to read this folder.
-      </div>
-    );
-  }
-
-  return entries?.map((entry) => {
-    const isOpen = entry.isDirectory && expanded.has(entry.path);
-    const isSelected = selectedPath === entry.path;
-    return (
-      <div key={entry.path} role="none">
-        <div
-          ref={isSelected ? (row) => row?.scrollIntoView({ block: "nearest" }) : undefined}
-          className="wb-tree-row"
-          role="treeitem"
-          aria-selected={isSelected}
-          aria-expanded={entry.isDirectory ? isOpen : undefined}
-          data-path={entry.path}
-          data-directory={entry.isDirectory}
-          style={rowIndent(depth)}
-          title={entry.path}
-          onClick={() => onActivateRow(entry.path, entry.isDirectory, false)}
-          onDoubleClick={() => onActivateRow(entry.path, entry.isDirectory, true)}
-        >
-          {entry.isDirectory ? (
-            <i className={`wb-twistie codicon codicon-chevron-${isOpen ? "down" : "right"}`} />
-          ) : (
-            <span className="wb-twistie" />
-          )}
-          {entry.isDirectory ? (
-            <FolderIcon name={entry.name} isOpen={isOpen} />
-          ) : (
-            <FileIcon name={entry.name} />
-          )}
-          <span className="wb-tree-label">{entry.name}</span>
-        </div>
-        {isOpen && <TreeLevel {...props} path={entry.path} depth={depth + 1} />}
-      </div>
-    );
-  });
 }

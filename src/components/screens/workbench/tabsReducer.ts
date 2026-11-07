@@ -1,3 +1,5 @@
+import { baseName, isWithin, rebasePath } from "../../../features/files/lib/path";
+
 export type Tab = {
   path: string;
   name: string;
@@ -23,6 +25,8 @@ export type TabsAction =
   | { type: "setDirty"; path: string; isDirty: boolean }
   | { type: "setDeleted"; path: string; isDeleted: boolean }
   | { type: "close"; path: string }
+  | { type: "rename"; from: string; to: string }
+  | { type: "closeWithin"; path: string }
   | { type: "closeAll" };
 
 export const initialTabsState: TabsState = { tabs: [], activePath: null, recent: [] };
@@ -93,6 +97,30 @@ export function tabsReducer(state: TabsState, action: TabsAction): TabsState {
       return {
         tabs: state.tabs.filter((tab) => tab.path !== action.path),
         activePath: state.activePath === action.path ? (recent[0] ?? null) : state.activePath,
+        recent,
+      };
+    }
+    case "rename": {
+      const { from, to } = action;
+      const rebase = (path: string) => rebasePath(path, from, to);
+      return {
+        tabs: state.tabs.map((tab) =>
+          isWithin(tab.path, from)
+            ? { ...tab, path: rebase(tab.path), name: baseName(rebase(tab.path)) }
+            : tab,
+        ),
+        activePath: state.activePath && rebase(state.activePath),
+        recent: state.recent.map(rebase),
+      };
+    }
+    case "closeWithin": {
+      const recent = state.recent.filter((p) => !isWithin(p, action.path));
+      return {
+        tabs: state.tabs.filter((tab) => !isWithin(tab.path, action.path)),
+        activePath:
+          state.activePath && isWithin(state.activePath, action.path)
+            ? (recent[0] ?? null)
+            : state.activePath,
         recent,
       };
     }

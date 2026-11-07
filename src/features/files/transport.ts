@@ -14,6 +14,22 @@ export function readTextFile(path: string): Promise<FileContent> {
   return invoke("read_text_file", { path });
 }
 
+export function createFile(path: string): Promise<void> {
+  return invoke("create_file", { path });
+}
+
+export function createDirectory(path: string): Promise<void> {
+  return invoke("create_directory", { path });
+}
+
+export function renamePath(request: { from: string; to: string }): Promise<void> {
+  return invoke("rename_path", request);
+}
+
+export function trashPath(path: string): Promise<void> {
+  return invoke("trash_path", { path });
+}
+
 export function watchWorkspace(root: string): Promise<void> {
   return invoke("watch_workspace", { root });
 }

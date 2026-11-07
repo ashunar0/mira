@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { type RefObject, useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { describeFileError, isFileError } from "../../../features/files/lib/fileError";
-import { baseName } from "../../../features/files/lib/path";
+import { baseName, isWithin, rebasePath } from "../../../features/files/lib/path";
 import { useSaveFileMutation } from "../../../features/files/mutations";
 import { useFileReader } from "../../../features/files/queries";
 import type { FileChanges, FileContent } from "../../../features/files/type";
@@ -22,7 +22,7 @@ type Buffer = {
   latestReload: number;
 };
 
-export function useEditorTabs() {
+export function useEditorTabs(editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>) {
   const [state, dispatch] = useReducer(tabsReducer, initialTabsState);
   const [focusRequest, setFocusRequest] = useState(0);
   const readFile = useFileReader();
@@ -31,6 +31,8 @@ export function useEditorTabs() {
   const buffers = useRef(new Map<string, Buffer>());
   const saveChains = useRef(new Map<string, Promise<boolean>>());
   const latestOpen = useRef(0);
+  // タブを行き来してもカーソルとスクロール位置を保つ。モデルが捨てられたら一緒に消える
+  const viewStates = useRef(new WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>());
   /** 開いた順の履歴（新しい順）。閉じたファイルも残し、Quick Open の先頭に出す */
   const history = useRef<string[]>([]);
   const stateRef = useRef(state);
@@ -182,6 +184,46 @@ export function useEditorTabs() {
     [reloadFromDisk],
   );
 
+  /** ディスク上で名前が変わった後に呼ぶ。Monaco のモデルは URI を変えられないので作り直す */
+  const handlePathRenamed = useCallback(
+    (from: string, to: string) => {
+      for (const [path, buffer] of [...buffers.current]) {
+        if (!isWithin(path, from)) continue;
+        const nextPath = rebasePath(path, from, to);
+        const wasDirty = buffer.model.getAlternativeVersionId() !== buffer.savedVersionId;
+        const editor = editorRef.current;
+        const viewState =
+          editor?.getModel() === buffer.model ? editor.saveViewState() : viewStates.current.get(buffer.model);
+
+        createBuffer(nextPath, {
+          text: buffer.model.getValue(),
+          hasBom: buffer.hasBom,
+          mtimeMs: buffer.mtimeMs,
+        });
+        const next = buffers.current.get(nextPath)!;
+        // 未保存の内容は引き継ぐ。undo の履歴は新しいモデルに移せないので、保存するまで dirty のまま
+        if (wasDirty) next.savedVersionId = -1;
+        if (viewState) viewStates.current.set(next.model, viewState);
+        // 古いモデルは、タブから消えた後の effect が捨てる
+      }
+      history.current = history.current.map((path) => rebasePath(path, from, to));
+      dispatch({ type: "rename", from, to });
+    },
+    [createBuffer, editorRef],
+  );
+
+  /** 削除の確認を済ませた後に呼ぶ。中のファイルのタブも閉じる */
+  const handlePathDeleted = useCallback((path: string) => {
+    history.current = history.current.filter((p) => !isWithin(p, path));
+    dispatch({ type: "closeWithin", path });
+  }, []);
+
+  const countUnsavedWithin = useCallback(
+    (path: string) =>
+      stateRef.current.tabs.filter((tab) => tab.isDirty && isWithin(tab.path, path)).length,
+    [],
+  );
+
   const saveActive = useCallback(() => {
     const { activePath } = stateRef.current;
     if (activePath) void saveFile(activePath);
@@ -247,12 +289,16 @@ export function useEditorTabs() {
     activeModel: activeTab ? (buffers.current.get(activeTab.path)?.model ?? null) : null,
     activeHasBom: activeTab ? (buffers.current.get(activeTab.path)?.hasBom ?? false) : false,
     focusRequest,
+    viewStates,
     openFile,
     activate,
     pin,
     closeTab,
     closeAll,
     handleFileChanges,
+    handlePathRenamed,
+    handlePathDeleted,
+    countUnsavedWithin,
     getHistory,
     saveActive,
     confirmDiscardAll,

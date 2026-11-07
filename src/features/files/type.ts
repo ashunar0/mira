@@ -10,7 +10,7 @@ export type FileContent = {
   mtimeMs: number;
 };
 
-export type FileErrorKind = "notFound" | "binary" | "tooLarge" | "conflict" | "io";
+export type FileErrorKind = "notFound" | "alreadyExists" | "binary" | "tooLarge" | "conflict" | "io";
 
 export type FileError = {
   kind: FileErrorKind;
