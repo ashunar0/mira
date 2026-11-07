@@ -12,6 +12,9 @@
   --list-active-selection: #04395e;
   --list-inactive-selection: #37373d;
   --toolbar-hover: #5a5d5e50;
+  --gutter-added: #2ea043;
+  --gutter-modified: #0078d4;
+  --gutter-removed: #f85149;
   --git-modified: #e2c08d;
   --git-added: #81b88b;
   --git-untracked: #73c991;
@@ -631,4 +634,30 @@ button {
 /* diff で色がついた行は、行番号も白くして目立たせる */
 .monaco-diff-editor .margin-view-overlays > div:has(.gutter-insert, .gutter-delete) .line-numbers {
   color: var(--fg-active);
+}
+
+/* 行番号の右の、最後のコミットから変わった行の印 */
+.monaco-editor .margin-view-overlays .wb-gutter-added,
+.monaco-editor .margin-view-overlays .wb-gutter-modified {
+  width: 3px !important;
+  margin-left: 3px;
+}
+
+.monaco-editor .margin-view-overlays .wb-gutter-added {
+  background: var(--gutter-added);
+}
+
+.monaco-editor .margin-view-overlays .wb-gutter-modified {
+  background: var(--gutter-modified);
+}
+
+/* 削除は行がないので、消えた位置の行の下端に小さな三角を出す */
+.monaco-editor .margin-view-overlays .wb-gutter-removed::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  bottom: -4px;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid var(--gutter-removed);
 }

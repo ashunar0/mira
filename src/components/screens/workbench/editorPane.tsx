@@ -1,11 +1,14 @@
 import { type RefObject, useEffect, useRef } from "react";
 import { EDITOR_OPTIONS, monaco } from "../../../infrastructure/monaco/setup";
 import type { EditorStatus } from "./statusBar";
+import { useGitGutter } from "./useGitGutter";
 
 type Props = {
   model: monaco.editor.ITextModel | null;
   /** diff の表示中は隠す。隠れたエディタに文字が入らないよう、フォーカスも外れる */
   isHidden: boolean;
+  /** 行番号の右の印を、この内容と比べて出す。null なら出さない */
+  gutterBaseText: string | null;
   focusRequest: number;
   editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>;
   viewStates: RefObject<WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>>;
@@ -34,7 +37,7 @@ export function readStatus(editor: monaco.editor.ICodeEditor): EditorStatus | nu
   };
 }
 
-export function EditorPane({ model, isHidden, focusRequest, editorRef, viewStates, onStatusChange }: Props) {
+export function EditorPane({ model, isHidden, gutterBaseText, focusRequest, editorRef, viewStates, onStatusChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -66,6 +69,8 @@ export function EditorPane({ model, isHidden, focusRequest, editorRef, viewState
     if (nextState) editor.restoreViewState(nextState);
     if (!model) onStatusChange(null);
   }, [editorRef, model, onStatusChange, viewStates]);
+
+  useGitGutter(editorRef, model, gutterBaseText);
 
   useEffect(() => {
     if (focusRequest > 0) editorRef.current?.focus();

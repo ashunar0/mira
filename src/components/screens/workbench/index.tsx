@@ -44,7 +44,7 @@ export function Workbench() {
 
   // diff のまま別のファイルへ移れるよう、タブごとではなく全体で持つ。変更がないファイルは普通に開く
   const canShowDiff = activeModel !== null && activeTab !== null && gitDecorations?.has(activeTab.path) === true;
-  const { data: headText } = useHeadTextQuery(isDiffWanted && canShowDiff ? activeTab.path : null);
+  const { data: headText } = useHeadTextQuery(activeModel && activeTab ? activeTab.path : null);
   const isDiffVisible = isDiffWanted && canShowDiff && headText !== undefined;
 
   const toggleDiff = () => {
@@ -183,6 +183,7 @@ export function Workbench() {
             <EditorPane
               model={activeModel}
               isHidden={isDiffVisible}
+              gutterBaseText={isDiffVisible ? null : (headText ?? null)}
               focusRequest={focusRequest}
               editorRef={editorRef}
               viewStates={viewStates}
