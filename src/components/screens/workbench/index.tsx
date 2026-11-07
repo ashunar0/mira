@@ -2,16 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import { baseName } from "../../../features/files/lib/path";
 import { useWorkspaceWatcher } from "../../../features/files/watcher";
 import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
+import { useRefreshSearch } from "../../../features/search/queries";
+import type { SearchMatch } from "../../../features/search/type";
 import { closeWindow, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import type { monaco } from "../../../infrastructure/monaco/setup";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
+import { ActivityBar, type SidebarView } from "./activityBar";
 import { Breadcrumbs } from "./breadcrumbs";
 import { DiffPane } from "./diffPane";
-import { EditorPane } from "./editorPane";
+import { EditorPane, type RevealRequest } from "./editorPane";
 import { Explorer } from "./explorer";
 import { MarkdownPreview } from "./markdownPreview";
 import { COMMAND_PREFIX, type Command, QuickOpen } from "./quickOpen";
 import { Sash } from "./sash";
+import { SearchView } from "./searchView";
 import { type EditorStatus, StatusBar } from "./statusBar";
 import { useStoredPreference } from "./storedPreference";
 import { TabBar } from "./tabBar";
@@ -29,6 +33,9 @@ export function Workbench() {
   const [rootPath, setRootPath] = useStoredPreference<string | null>("mira.rootPath", null);
   const [sidebarWidth, setSidebarWidth] = useStoredPreference("mira.sidebarWidth", SIDEBAR_DEFAULT_WIDTH);
   const [isSidebarVisible, setIsSidebarVisible] = useStoredPreference("mira.sidebarVisible", true);
+  const [sidebarView, setSidebarView] = useState<SidebarView>("explorer");
+  const [searchText, setSearchText] = useState("");
+  const [revealRequest, setRevealRequest] = useState<RevealRequest | null>(null);
   const [editorStatus, setEditorStatus] = useState<EditorStatus | null>(null);
   const [quickOpenText, setQuickOpenText] = useState<string | null>(null);
   // 切り替えたまま別のファイルへ移れるよう、タブごとではなく全体で持つ。出せないファイルは普通に開く
@@ -36,13 +43,16 @@ export function Workbench() {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const diffEditorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
   const previewTopLineRef = useRef<(() => number) | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const editorTabs = useEditorTabs(editorRef);
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
   const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
   const refreshGitStatus = useRefreshGitStatus();
+  const refreshSearch = useRefreshSearch();
   useWorkspaceWatcher(rootPath, (changes) => {
     editorTabs.handleFileChanges(changes);
     void refreshGitStatus();
+    void refreshSearch();
   });
 
   const canShowDiff = activeModel !== null && activeTab !== null && gitDecorations?.has(activeTab.path) === true;
@@ -74,6 +84,33 @@ export function Workbench() {
     if (!canShowPreview) return;
     if (isPreviewVisible) showEditor({ line: previewTopLineRef.current?.() ?? 1, moveCursor: false });
     else setWantedView("preview");
+  };
+
+  const selectSidebarView = (view: SidebarView) => {
+    setSidebarView(view);
+    if (view === "search") requestAnimationFrame(() => searchInputRef.current?.select());
+  };
+
+  /** エディタで選んでいる語があれば、それを検索語にする */
+  const findInFiles = () => {
+    const editor = diffEditorRef.current?.getModifiedEditor() ?? editorRef.current;
+    const selection = editor?.getSelection();
+    const selected = selection && !selection.isEmpty() ? editor?.getModel()?.getValueInRange(selection) : "";
+    if (selected && !selected.includes("\n")) setSearchText(selected);
+    setIsSidebarVisible(true);
+    selectSidebarView("search");
+  };
+
+  const openSearchMatch = (path: string, match: SearchMatch, options: { pin: boolean }) => {
+    setWantedView("editor");
+    setRevealRequest((current) => ({
+      id: (current?.id ?? 0) + 1,
+      path,
+      line: match.line,
+      column: match.column,
+      length: match.length,
+    }));
+    void editorTabs.openFile(path, options);
   };
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
@@ -109,6 +146,7 @@ export function Workbench() {
             { id: "previous-change", label: "View: Previous Change", keybinding: ["⌥", "⌘", "↑"], run: () => diffEditorRef.current?.goToDiff("previous") },
           ]
         : []),
+      { id: "find-in-files", label: "Search: Find in Files", keybinding: ["⇧", "⌘", "F"], run: findInFiles },
       { id: "quick-open", label: "Go to File...", keybinding: ["⌘", "P"], run: () => setQuickOpenText("") },
     ];
     // Monaco の編集コマンドも並べる。パレットは自前なので Monaco 自身のパレットは除く
@@ -140,6 +178,7 @@ export function Workbench() {
     "toggle-sidebar": toggleSidebar,
     "toggle-diff": toggleDiff,
     "toggle-preview": togglePreview,
+    "find-in-files": findInFiles,
     "quick-open": () => setQuickOpenText(""),
     "command-palette": showCommands,
     quit: () => void closeWindow(),
@@ -177,15 +216,39 @@ export function Workbench() {
       <div className="wb-main">
         {isSidebarVisible && (
           <div className="wb-sidebar-slot" style={{ width: sidebarWidth }}>
-            <Explorer
-              rootPath={rootPath}
-              activePath={activeTab?.path ?? null}
-              onOpenFile={(path, options) => void editorTabs.openFile(path, options)}
-              onOpenFolder={() => void openFolder()}
-              onPathRenamed={editorTabs.handlePathRenamed}
-              onPathDeleted={editorTabs.handlePathDeleted}
-              countUnsavedWithin={editorTabs.countUnsavedWithin}
-            />
+            <aside className="wb-sidebar">
+              <ActivityBar active={sidebarView} onSelect={selectSidebarView} />
+              {/* 切り替えても開いたフォルダや検索結果が残るよう、隠すだけにする */}
+              <div className="wb-sidebar-view" hidden={sidebarView !== "explorer"}>
+                <Explorer
+                  rootPath={rootPath}
+                  activePath={activeTab?.path ?? null}
+                  onOpenFile={(path, options) => void editorTabs.openFile(path, options)}
+                  onOpenFolder={() => void openFolder()}
+                  onPathRenamed={editorTabs.handlePathRenamed}
+                  onPathDeleted={editorTabs.handlePathDeleted}
+                  countUnsavedWithin={editorTabs.countUnsavedWithin}
+                />
+              </div>
+              <div className="wb-sidebar-view" hidden={sidebarView !== "search"}>
+                <div className="wb-sidebar-title">Search</div>
+                {rootPath ? (
+                  <SearchView
+                    key={rootPath}
+                    rootPath={rootPath}
+                    isVisible={sidebarView === "search"}
+                    text={searchText}
+                    onTextChange={setSearchText}
+                    inputRef={searchInputRef}
+                    onOpenMatch={openSearchMatch}
+                  />
+                ) : (
+                  <div className="wb-no-folder">
+                    <p>Open a folder to search.</p>
+                  </div>
+                )}
+              </div>
+            </aside>
           </div>
         )}
         <main className="wb-editor-area">
@@ -232,6 +295,7 @@ export function Workbench() {
             <EditorPane
               model={activeModel}
               isHidden={isDiffVisible || isPreviewVisible}
+              revealRequest={revealRequest}
               gutterBaseText={isDiffVisible || isPreviewVisible ? null : (headText ?? null)}
               focusRequest={focusRequest}
               editorRef={editorRef}

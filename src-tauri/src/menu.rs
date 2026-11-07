@@ -53,6 +53,7 @@ pub fn install(app: &App) -> tauri::Result<()> {
         .item(&item("toggle-preview", "Toggle Markdown Preview", "CmdOrCtrl+Shift+V")?)
         .build()?;
     let go_menu = SubmenuBuilder::new(app, "Go")
+        .item(&item("find-in-files", "Find in Files", "CmdOrCtrl+Shift+F")?)
         .item(&item("quick-open", "Go to File...", "CmdOrCtrl+P")?)
         .build()?;
     let window_menu = SubmenuBuilder::new(app, "Window")

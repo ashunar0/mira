@@ -2,6 +2,7 @@ mod files;
 mod git;
 mod ignore_rules;
 mod menu;
+mod search;
 mod watcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -26,6 +27,7 @@ pub fn run() {
             files::trash_path,
             git::git_status,
             git::git_head_text,
+            search::search_workspace,
             watcher::watch_workspace,
         ])
         .run(tauri::generate_context!())

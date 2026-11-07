@@ -3,12 +3,22 @@ import { EDITOR_OPTIONS, monaco } from "../../../infrastructure/monaco/setup";
 import type { EditorStatus } from "./statusBar";
 import { useGitGutter } from "./useGitGutter";
 
+/** 検索結果から開いた場所。id が変わるたびに、その範囲を選択して見せる */
+export type RevealRequest = {
+  id: number;
+  path: string;
+  line: number;
+  column: number;
+  length: number;
+};
+
 type Props = {
   model: monaco.editor.ITextModel | null;
   /** diff の表示中は隠す。隠れたエディタに文字が入らないよう、フォーカスも外れる */
   isHidden: boolean;
   /** 行番号の右の印を、この内容と比べて出す。null なら出さない */
   gutterBaseText: string | null;
+  revealRequest: RevealRequest | null;
   focusRequest: number;
   editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>;
   viewStates: RefObject<WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>>;
@@ -37,7 +47,7 @@ export function readStatus(editor: monaco.editor.ICodeEditor): EditorStatus | nu
   };
 }
 
-export function EditorPane({ model, isHidden, gutterBaseText, focusRequest, editorRef, viewStates, onStatusChange }: Props) {
+export function EditorPane({ model, isHidden, gutterBaseText, revealRequest, focusRequest, editorRef, viewStates, onStatusChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,6 +81,19 @@ export function EditorPane({ model, isHidden, gutterBaseText, focusRequest, edit
   }, [editorRef, model, onStatusChange, viewStates]);
 
   useGitGutter(editorRef, model, gutterBaseText);
+
+  // ファイルを読み終えてモデルが切り替わるまで待ってから動かす
+  const revealedId = useRef<number | null>(null);
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || !model || !revealRequest || revealedId.current === revealRequest.id) return;
+    if (model.uri.toString() !== monaco.Uri.file(revealRequest.path).toString()) return;
+    revealedId.current = revealRequest.id;
+    const { line, column, length } = revealRequest;
+    const range = new monaco.Range(line, column, line, column + length);
+    editor.setSelection(range);
+    editor.revealRangeInCenter(range);
+  }, [editorRef, model, revealRequest]);
 
   useEffect(() => {
     if (focusRequest > 0) editorRef.current?.focus();

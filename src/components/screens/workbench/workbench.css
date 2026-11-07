@@ -769,3 +769,108 @@ button {
   border: none;
   border-top: 1px solid var(--border);
 }
+
+/* 全文検索 */
+.wb-sidebar-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wb-sidebar-view[hidden] {
+  display: none;
+}
+
+.wb-search {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.wb-search-input {
+  flex: none;
+  height: 26px;
+  margin: 0 12px 8px;
+  padding: 0 6px;
+  color: var(--fg);
+  font: inherit;
+  background: #313131;
+  border: 1px solid #3c3c3c;
+  border-radius: 2px;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wb-search-input:focus {
+  border-color: var(--accent);
+}
+
+.wb-search-summary {
+  flex: none;
+  padding: 0 12px 6px;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.wb-search-results {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 8px 22px;
+}
+
+.wb-search-file,
+.wb-search-match {
+  height: 22px;
+  line-height: 22px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.wb-search-file {
+  display: flex;
+  align-items: center;
+}
+
+.wb-search-file:hover,
+.wb-search-match:hover {
+  background: var(--list-hover);
+}
+
+.wb-search-file-name {
+  flex: none;
+  max-width: 70%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wb-search-file-folder {
+  flex: 1;
+  min-width: 0;
+  margin-left: 6px;
+  overflow: hidden;
+  color: var(--fg-muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+}
+
+.wb-search-file-count {
+  flex: none;
+  margin: 0 8px 0 8px;
+  color: var(--fg-muted);
+  font-size: 11px;
+}
+
+.wb-search-match {
+  padding-left: 30px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wb-search-match mark {
+  color: inherit;
+  background: #9e6a0380;
+}

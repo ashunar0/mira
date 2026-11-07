@@ -12,7 +12,6 @@ import type { DirEntry } from "../../../features/files/type";
 import { useGitDecorationsQuery } from "../../../features/git/queries";
 import { askMoveToTrash, showError } from "../../../infrastructure/nativeDialog";
 import { copyText, revealInFinder, showContextMenu } from "../../../infrastructure/nativeShell";
-import { ActivityBar } from "./activityBar";
 import { type ExplorerEdit, ExplorerTreeLevel } from "./explorerTree";
 
 type Props = {
@@ -28,15 +27,14 @@ type Props = {
 export function Explorer(props: Props) {
   const { rootPath, onOpenFolder } = props;
   return (
-    <aside className="wb-sidebar">
-      <ActivityBar />
+    <>
       <div className="wb-sidebar-title">Explorer</div>
       {rootPath ? (
         <FolderTree key={rootPath} {...props} rootPath={rootPath} />
       ) : (
         <NoFolder onOpenFolder={onOpenFolder} />
       )}
-    </aside>
+    </>
   );
 }
 

@@ -2266,6 +2266,7 @@ version = "0.1.0"
 dependencies = [
  "ignore",
  "notify-debouncer-full",
+ "regex",
  "serde",
  "serde_json",
  "tauri",

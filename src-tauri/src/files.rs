@@ -106,13 +106,18 @@ pub fn read_directory(path: String) -> Result<Vec<DirEntry>, FileError> {
     Ok(entries)
 }
 
-/// Quick Open 用の一覧。VS Code と同じく隠しファイルは含め、.gitignore に従う。
+/// Quick Open と全文検索の対象。VS Code と同じく隠しファイルは含め、.gitignore に従う。
+pub fn workspace_walk(root: &str) -> WalkBuilder {
+    let mut walk = WalkBuilder::new(root);
+    walk.hidden(false)
+        .filter_entry(|entry| !is_excluded_name(entry.file_name()));
+    walk
+}
+
 #[tauri::command(async)]
 pub fn list_workspace_files(root: String) -> Result<Vec<String>, FileError> {
     fs::metadata(&root)?;
-    let mut paths: Vec<String> = WalkBuilder::new(&root)
-        .hidden(false)
-        .filter_entry(|entry| !is_excluded_name(entry.file_name()))
+    let mut paths: Vec<String> = workspace_walk(&root)
         .build()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_some_and(|kind| kind.is_file()))
