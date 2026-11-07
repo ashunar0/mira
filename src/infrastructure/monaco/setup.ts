@@ -34,11 +34,11 @@ self.MonacoEnvironment = {
 monaco.editor.defineTheme(THEME_NAME, KANAGAWA_DRAGON);
 installHoverCopyFeedback();
 
-// Monaco はプロジェクトの tsconfig も node_modules も知らないので、意味解析を動かすと import が
-// 軒並み赤線になる。LSP を入れるまでは構文エラーだけ出す。
-const diagnostics = { noSemanticValidation: true, noSyntaxValidation: false };
-monaco.typescript.typescriptDefaults.setDiagnosticsOptions(diagnostics);
-monaco.typescript.javascriptDefaults.setDiagnosticsOptions(diagnostics);
+// 型エラー・ホバー・定義は typescript-language-server が受け持つ（features/lsp）。組み込みのものは 1 ファイルしか
+// 見ないうえ、設定は言語を最初に使うときにしか読まれず後から切り替えられないので、最初から止めておく
+for (const defaults of [monaco.typescript.typescriptDefaults, monaco.typescript.javascriptDefaults]) {
+  defaults.setModeConfiguration({ ...defaults.modeConfiguration, diagnostics: false, hovers: false, definitions: false });
+}
 
 // フォントは VS Code の macOS での既定値に合わせ、行間は好みで広めにとる
 const SHARED_OPTIONS = {

@@ -2,6 +2,7 @@ mod files;
 mod git;
 mod ignore_rules;
 mod launch;
+mod lsp;
 mod menu;
 mod search;
 mod watcher;
@@ -14,6 +15,7 @@ pub fn run() {
         .plugin(tauri_plugin_clipboard_manager::init())
         .manage(watcher::WorkspaceWatcher::default())
         .manage(launch::PendingFolder::default())
+        .manage(lsp::LanguageServer::default())
         .setup(|app| {
             menu::install(app)?;
             Ok(())
@@ -28,6 +30,9 @@ pub fn run() {
             files::rename_path,
             files::trash_path,
             launch::take_pending_folder,
+            lsp::lsp_start,
+            lsp::lsp_send,
+            lsp::lsp_stop,
             git::git_status,
             git::git_head_text,
             search::search_workspace,
