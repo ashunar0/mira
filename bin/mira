@@ -1,4 +1,4 @@
 #!/bin/sh
-# mira [folder]: フォルダを mira で開く。省略するとカレントディレクトリ。
+# mira [folder]: フォルダを Mira で開く。省略するとカレントディレクトリ。
 # 起動中ならそのウィンドウで開き直す。
 exec open -b dev.ashunar0.mira "${1:-.}"

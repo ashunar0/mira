@@ -214,7 +214,7 @@ export function Workbench() {
   return (
     <div className="wb-root">
       <TitleBar
-        title={title || "mira"}
+        title={title || "Mira"}
         isSidebarVisible={isSidebarVisible}
         onToggleSidebar={toggleSidebar}
       />

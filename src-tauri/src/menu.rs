@@ -12,14 +12,14 @@ pub fn install(app: &App) -> tauri::Result<()> {
             .build(app)
     };
 
-    let app_menu = SubmenuBuilder::new(app, "mira")
+    let app_menu = SubmenuBuilder::new(app, "Mira")
         .about(None)
         .separator()
         .hide()
         .hide_others()
         .show_all()
         .separator()
-        .item(&item("quit", "Quit mira", "CmdOrCtrl+Q")?)
+        .item(&item("quit", "Quit Mira", "CmdOrCtrl+Q")?)
         .build()?;
     let file_menu = SubmenuBuilder::new(app, "File")
         .item(&item("open-folder", "Open Folder...", "CmdOrCtrl+O")?)
