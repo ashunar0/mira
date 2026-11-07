@@ -65,6 +65,8 @@ export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructio
   renderGutterMenu: false,
   renderIndicators: false,
   renderOverviewRuler: false,
+  // 折りたたみがない分の幅を足して、普段のエディタとコードの位置を揃える
+  lineDecorationsWidth: 26,
   overviewRulerLanes: 1,
   overviewRulerBorder: false,
   hideCursorInOverviewRuler: true,

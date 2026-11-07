@@ -39,6 +39,8 @@ export function DiffPane({ model, originalText, focusRequest, editorRef, onStatu
   useEffect(() => {
     const diffEditor = monaco.editor.createDiffEditor(containerRef.current!, DIFF_EDITOR_OPTIONS);
     const modified = diffEditor.getModifiedEditor();
+    // Monaco は左側にだけアイコン用の余白をつけるので、消して行番号の位置を普段のエディタと揃える
+    diffEditor.getOriginalEditor().updateOptions({ glyphMargin: false });
     editorRef.current = diffEditor;
     const report = () => onStatusChange(readStatus(modified));
     const subscriptions = [
