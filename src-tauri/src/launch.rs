@@ -1,8 +1,11 @@
-use std::{path::PathBuf, sync::Mutex};
+use std::{
+    path::{Path, PathBuf},
+    sync::Mutex,
+};
 
 use tauri::{AppHandle, Emitter, Manager, State, Url};
 
-/// `mira .`（中身は `open -a mira <path>`）で渡されたフォルダ。
+/// `mira .`（中身は `open -b <identifier> <path>`）で渡されたフォルダ。
 /// 起動直後はフロントエンドがまだ聞いていないので、取りに来るまで預かる。
 #[derive(Default)]
 pub struct PendingFolder(Mutex<Option<String>>);
@@ -14,7 +17,7 @@ pub fn handle_opened(app: &AppHandle, urls: &[Url]) {
         .iter()
         .filter_map(|url| url.to_file_path().ok())
         .filter(|path| path.is_dir())
-        .map(|path: PathBuf| path.to_string_lossy().into_owned())
+        .map(|path| folder_path(&path))
         .last()
     else {
         return;
@@ -23,7 +26,23 @@ pub fn handle_opened(app: &AppHandle, urls: &[Url]) {
     let _ = app.emit("pending-folder", ());
 }
 
+/// フォルダの URL は末尾が / なので、⌘O で選んだときと同じ形に揃える
+fn folder_path(path: &Path) -> String {
+    path.components().collect::<PathBuf>().to_string_lossy().into_owned()
+}
+
 #[tauri::command]
 pub fn take_pending_folder(pending: State<PendingFolder>) -> Option<String> {
     pending.0.lock().unwrap().take()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn folder_urls_lose_the_trailing_slash() {
+        let url = Url::parse("file:///Users/me/my%20site/").unwrap();
+        assert_eq!(folder_path(&url.to_file_path().unwrap()), "/Users/me/my site");
+    }
 }
