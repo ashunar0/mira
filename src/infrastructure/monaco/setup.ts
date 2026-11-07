@@ -4,6 +4,7 @@ import CssWorker from "monaco-editor/languages/features/css/css.worker.js?worker
 import HtmlWorker from "monaco-editor/languages/features/html/html.worker.js?worker";
 import JsonWorker from "monaco-editor/languages/features/json/json.worker.js?worker";
 import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
+import { installHoverCopyFeedback } from "./hoverCopyFeedback";
 import { DARK_MODERN } from "./theme";
 
 const THEME_NAME = "dark-modern";
@@ -31,6 +32,7 @@ self.MonacoEnvironment = {
 };
 
 monaco.editor.defineTheme(THEME_NAME, DARK_MODERN);
+installHoverCopyFeedback();
 
 // Monaco はプロジェクトの tsconfig も node_modules も知らないので、意味解析を動かすと import が
 // 軒並み赤線になる。LSP を入れるまでは構文エラーだけ出す。
