@@ -1,17 +1,19 @@
 import type { MouseEvent } from "react";
 import { baseName, parentPath } from "../../../features/files/lib/path";
+import type { GitFileState } from "../../../features/git/type";
 import { FileIcon } from "./fileIcon";
 import type { Tab } from "./tabsReducer";
 
 type Props = {
   tabs: Tab[];
   activePath: string | null;
+  gitDecorations: ReadonlyMap<string, GitFileState> | undefined;
   onActivate: (path: string) => void;
   onPin: (path: string) => void;
   onClose: (path: string) => void;
 };
 
-export function TabBar({ tabs, activePath, onActivate, onPin, onClose }: Props) {
+export function TabBar({ tabs, activePath, gitDecorations, onActivate, onPin, onClose }: Props) {
   const handleAuxClick = (event: MouseEvent, path: string) => {
     if (event.button === 1) onClose(path);
   };
@@ -38,6 +40,7 @@ export function TabBar({ tabs, activePath, onActivate, onPin, onClose }: Props) 
             data-preview={tab.isPreview}
             data-dirty={tab.isDirty}
             data-deleted={tab.isDeleted}
+            data-git={gitDecorations?.get(tab.path)}
             title={tab.isDeleted ? `${tab.path} (deleted)` : tab.path}
             onMouseDown={(event) => {
               if (event.button === 0) onActivate(tab.path);

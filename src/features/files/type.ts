@@ -21,6 +21,8 @@ export type FileChanges = {
   paths: string[];
   /** OS がイベントを取りこぼした。paths は当てにせず全体を読み直す */
   needsRescan: boolean;
+  /** コミットやステージなどで Git の状態が変わった */
+  gitChanged: boolean;
 };
 
 export type SaveFileRequest = {

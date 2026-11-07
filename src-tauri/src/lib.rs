@@ -1,4 +1,5 @@
 mod files;
+mod git;
 mod ignore_rules;
 mod menu;
 mod watcher;
@@ -23,6 +24,7 @@ pub fn run() {
             files::create_directory,
             files::rename_path,
             files::trash_path,
+            git::git_status,
             watcher::watch_workspace,
         ])
         .run(tauri::generate_context!())

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { baseName } from "../../../features/files/lib/path";
 import { useWorkspaceWatcher } from "../../../features/files/watcher";
+import { useGitDecorationsQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { closeWindow, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import type { monaco } from "../../../infrastructure/monaco/setup";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
@@ -31,7 +32,12 @@ export function Workbench() {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const editorTabs = useEditorTabs(editorRef);
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
-  useWorkspaceWatcher(rootPath, editorTabs.handleFileChanges);
+  const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
+  const refreshGitStatus = useRefreshGitStatus();
+  useWorkspaceWatcher(rootPath, (changes) => {
+    editorTabs.handleFileChanges(changes);
+    void refreshGitStatus();
+  });
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
 
@@ -140,6 +146,7 @@ export function Workbench() {
             <TabBar
               tabs={tabs}
               activePath={activeTab?.path ?? null}
+              gitDecorations={gitDecorations}
               onActivate={editorTabs.activate}
               onPin={editorTabs.pin}
               onClose={(path) => void editorTabs.closeTab(path)}

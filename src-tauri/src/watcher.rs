@@ -33,6 +33,21 @@ pub struct FileChanges {
     paths: Vec<String>,
     /// OS がイベントを取りこぼした。paths は当てにせず全体を読み直す必要がある
     needs_rescan: bool,
+    /// コミットやステージなどで Git の状態が変わった
+    git_changed: bool,
+}
+
+/// git status の結果に関わる .git の中身か。ロックファイルなどの一時的なものは含めない。
+/// 開いたフォルダの中にある別のリポジトリの .git も対象にする。
+fn is_git_state_path(path: &Path) -> bool {
+    let mut after_git_dir = path.components();
+    if !after_git_dir.any(|component| component.as_os_str() == ".git") {
+        return false;
+    }
+    let relative = after_git_dir.as_path();
+    let is_state = relative.starts_with("refs")
+        || ["HEAD", "index", "packed-refs"].iter().any(|name| relative == Path::new(name));
+    is_state && relative.extension().is_none_or(|extension| extension != "lock")
 }
 
 /// OS は実体のパスを返す（macOS の /tmp は /private/tmp など）ので、開いた時のパスに戻す。
@@ -75,19 +90,22 @@ fn start(
         }
 
         let mut needs_rescan = false;
+        let mut git_changed = false;
         let mut paths = BTreeSet::new();
         for event in events.iter().filter(|event| !event.kind.is_access()) {
             needs_rescan |= event.need_rescan();
+            git_changed |= event.paths.iter().any(|path| is_git_state_path(path));
             // ビルド出力などの .gitignore 対象は、フロントエンドへ通知しない
             paths.extend(event.paths.iter().filter_map(|path| {
                 let mapped = to_workspace_path(path, &watched_root, &workspace_root)?;
                 (!ignore_rules.is_ignored(path)).then(|| mapped.to_string_lossy().into_owned())
             }));
         }
-        if needs_rescan || !paths.is_empty() {
+        if needs_rescan || git_changed || !paths.is_empty() {
             on_change(FileChanges {
                 paths: paths.into_iter().collect(),
                 needs_rescan,
+                git_changed,
             });
         }
     };
@@ -147,6 +165,69 @@ mod tests {
         let expected = root.join("a.txt").to_string_lossy().into_owned();
         assert!(paths.contains(&expected), "{paths:?}");
         assert!(!paths.iter().any(|path| path.contains("/.git/")), "{paths:?}");
+    }
+
+    #[test]
+    fn only_git_state_files_count_as_a_git_change() {
+        for path in [
+            "/w/.git/HEAD",
+            "/w/.git/index",
+            "/w/.git/packed-refs",
+            "/w/.git/refs/heads/main",
+            "/w/packages/x/.git/index",
+        ] {
+            assert!(is_git_state_path(Path::new(path)), "{path}");
+        }
+        for path in [
+            "/w/.git/index.lock",
+            "/w/.git/refs/heads/main.lock",
+            "/w/.git/objects/ab/cd",
+            "/w/.git/logs/HEAD",
+            "/w/a.txt",
+        ] {
+            assert!(!is_git_state_path(Path::new(path)), "{path}");
+        }
+    }
+
+    fn git(root: &Path, args: &[&str]) {
+        let output = std::process::Command::new("git")
+            .args(["--no-optional-locks", "-C"])
+            .arg(root)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(output.status.success(), "{output:?}");
+    }
+
+    /// 2 秒静かになるまでに Git の変更の通知が来たか
+    fn saw_git_change(receiver: &mpsc::Receiver<FileChanges>) -> bool {
+        let mut seen = false;
+        while let Ok(changes) = receiver.recv_timeout(Duration::from_secs(2)) {
+            seen |= changes.git_changed;
+        }
+        seen
+    }
+
+    #[test]
+    fn staging_is_noticed_but_reading_status_does_not_notify_itself() {
+        let root = temp_root("git");
+        fs::remove_dir_all(root.join(".git")).unwrap();
+        fs::write(root.join("a.txt"), "x").unwrap();
+        git(&root, &["init", "-q"]);
+        // 初回の status で index が更新されないよう、先に一度ステージしておく
+        git(&root, &["add", "a.txt"]);
+
+        let (sender, receiver) = mpsc::channel();
+        let _watcher = start(&root, move |changes| sender.send(changes).unwrap()).unwrap();
+        std::thread::sleep(Duration::from_millis(500));
+        saw_git_change(&receiver); // 監視を始める前の変更が遅れて届く分を捨てる
+
+        crate::git::git_status(root.to_string_lossy().into_owned());
+        assert!(!saw_git_change(&receiver), "status must not trigger the watcher");
+
+        fs::write(root.join("b.txt"), "x").unwrap();
+        git(&root, &["add", "b.txt"]);
+        assert!(saw_git_change(&receiver), "staging must be noticed");
     }
 
     #[test]

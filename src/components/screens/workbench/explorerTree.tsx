@@ -1,6 +1,7 @@
 import type { MouseEvent } from "react";
 import { useDirectoryQuery } from "../../../features/files/queries";
 import type { DirEntry } from "../../../features/files/type";
+import type { GitFileState } from "../../../features/git/type";
 import { ExplorerNameInput } from "./explorerNameInput";
 import { FileIcon, FolderIcon } from "./fileIcon";
 
@@ -14,10 +15,20 @@ type Props = {
   expanded: ReadonlySet<string>;
   selectedPath: string | null;
   edit: ExplorerEdit | null;
+  gitDecorations: ReadonlyMap<string, GitFileState> | undefined;
   onActivateRow: (path: string, isDirectory: boolean, pin: boolean) => void;
   onRowContextMenu: (event: MouseEvent, entry: DirEntry) => void;
   onCommitEdit: (name: string) => Promise<void>;
   onCancelEdit: () => void;
+};
+
+const GIT_BADGES: Record<GitFileState, string> = {
+  modified: "M",
+  added: "A",
+  untracked: "U",
+  renamed: "R",
+  deleted: "D",
+  conflicted: "!",
 };
 
 function rowIndent(depth: number) {
@@ -25,7 +36,7 @@ function rowIndent(depth: number) {
 }
 
 export function ExplorerTreeLevel(props: Props) {
-  const { path, depth, expanded, selectedPath, edit, onActivateRow, onRowContextMenu } = props;
+  const { path, depth, expanded, selectedPath, edit, gitDecorations, onActivateRow, onRowContextMenu } = props;
   const { onCommitEdit, onCancelEdit } = props;
   const { data: entries, error } = useDirectoryQuery(path);
 
@@ -67,6 +78,7 @@ export function ExplorerTreeLevel(props: Props) {
         const isOpen = entry.isDirectory && expanded.has(entry.path);
         const isSelected = selectedPath === entry.path;
         const isRenaming = edit?.kind === "rename" && edit.path === entry.path;
+        const gitState = gitDecorations?.get(entry.path);
         return (
           <div key={entry.path} role="none">
             <div
@@ -77,6 +89,7 @@ export function ExplorerTreeLevel(props: Props) {
               aria-expanded={entry.isDirectory ? isOpen : undefined}
               data-path={entry.path}
               data-directory={entry.isDirectory}
+              data-git={gitState}
               style={rowIndent(depth)}
               title={entry.path}
               onClick={() => onActivateRow(entry.path, entry.isDirectory, false)}
@@ -101,7 +114,14 @@ export function ExplorerTreeLevel(props: Props) {
                   onCancel={onCancelEdit}
                 />
               ) : (
-                <span className="wb-tree-label">{entry.name}</span>
+                <>
+                  <span className="wb-tree-label">{entry.name}</span>
+                  {gitState && (
+                    <span className="wb-tree-badge">
+                      {entry.isDirectory ? <span className="wb-tree-dot" /> : GIT_BADGES[gitState]}
+                    </span>
+                  )}
+                </>
               )}
             </div>
             {isOpen && <ExplorerTreeLevel {...props} path={entry.path} depth={depth + 1} />}

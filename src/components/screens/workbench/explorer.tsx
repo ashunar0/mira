@@ -9,6 +9,7 @@ import {
 } from "../../../features/files/mutations";
 import { useRefreshDirectories } from "../../../features/files/queries";
 import type { DirEntry } from "../../../features/files/type";
+import { useGitDecorationsQuery } from "../../../features/git/queries";
 import { askMoveToTrash, showError } from "../../../infrastructure/nativeDialog";
 import { copyText, revealInFinder, showContextMenu } from "../../../infrastructure/nativeShell";
 import { ActivityBar } from "./activityBar";
@@ -74,6 +75,7 @@ function FolderTree(props: FolderTreeProps) {
   const [edit, setEdit] = useState<ExplorerEdit | null>(null);
   const treeRef = useRef<HTMLDivElement>(null);
   const refresh = useRefreshDirectories();
+  const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
   const { mutateAsync: createFile } = useCreateFileMutation();
   const { mutateAsync: createDirectory } = useCreateDirectoryMutation();
   const { mutateAsync: renamePath } = useRenamePathMutation();
@@ -295,6 +297,7 @@ function FolderTree(props: FolderTreeProps) {
             expanded={expanded}
             selectedPath={selectedPath}
             edit={edit}
+            gitDecorations={gitDecorations}
             onActivateRow={activateRow}
             onRowContextMenu={openContextMenu}
             onCommitEdit={commitEdit}
