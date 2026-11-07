@@ -12,7 +12,7 @@ use notify_debouncer_full::{
     DebounceEventResult, Debouncer, RecommendedCache,
 };
 use serde::Serialize;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 use crate::{
     files::{is_excluded_name, FileError},
@@ -123,6 +123,8 @@ pub fn watch_workspace(
     watcher: State<'_, WorkspaceWatcher>,
     root: String,
 ) -> Result<(), FileError> {
+    // Markdown プレビューで、開いたフォルダの中の画像を読めるようにする。失敗しても画像が出ないだけ
+    let _ = app.asset_protocol_scope().allow_directory(&root, true);
     let debouncer = start(Path::new(&root), move |changes| {
         let _ = app.emit("files-changed", changes);
     })?;

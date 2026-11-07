@@ -1,5 +1,6 @@
 import { type MouseEvent, type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { renderMarkdown } from "../../../infrastructure/markdown";
+import { colorizeCodeBlocks } from "../../../infrastructure/monaco/colorizeCodeBlocks";
 import { monaco } from "../../../infrastructure/monaco/setup";
 import { openExternalUrl } from "../../../infrastructure/nativeShell";
 
@@ -36,7 +37,14 @@ export function MarkdownPreview({ model, editorRef, topLineRef, onEditLine }: Pr
     [model],
   );
   const source = useSyncExternalStore(subscribe, () => model.getValue());
-  const html = useMemo(() => renderMarkdown(source), [source]);
+  const path = model.uri.path;
+  const html = useMemo(() => renderMarkdown(source, path), [source, path]);
+
+  // React が HTML を差し替えるたびに塗り直す
+  useEffect(() => {
+    const container = containerRef.current;
+    if (container && html) return colorizeCodeBlocks(container);
+  }, [html]);
 
   useEffect(() => {
     topLineRef.current = () => {
