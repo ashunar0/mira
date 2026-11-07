@@ -52,6 +52,8 @@ export function useEditorTabs(editorRef: RefObject<monaco.editor.IStandaloneCode
 
   const createBuffer = useCallback((path: string, content: FileContent) => {
     const uri = monaco.Uri.file(path);
+    // ホットリロードで画面が作り直されると、タブは消えてもモデルは Monaco に残っている
+    monaco.editor.getModel(uri)?.dispose();
     const model = monaco.editor.createModel(content.text, undefined, uri);
     const subscription = model.onDidChangeContent(() => {
       const buffer = buffers.current.get(path);
