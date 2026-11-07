@@ -4,13 +4,15 @@ import type { EditorStatus } from "./statusBar";
 
 type Props = {
   model: monaco.editor.ITextModel | null;
+  /** diff の表示中は隠す。隠れたエディタに文字が入らないよう、フォーカスも外れる */
+  isHidden: boolean;
   focusRequest: number;
   editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>;
   viewStates: RefObject<WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>>;
   onStatusChange: (status: EditorStatus | null) => void;
 };
 
-function readStatus(editor: monaco.editor.IStandaloneCodeEditor): EditorStatus | null {
+export function readStatus(editor: monaco.editor.ICodeEditor): EditorStatus | null {
   const model = editor.getModel();
   const position = editor.getPosition();
   if (!model || !position) return null;
@@ -32,7 +34,7 @@ function readStatus(editor: monaco.editor.IStandaloneCodeEditor): EditorStatus |
   };
 }
 
-export function EditorPane({ model, focusRequest, editorRef, viewStates, onStatusChange }: Props) {
+export function EditorPane({ model, isHidden, focusRequest, editorRef, viewStates, onStatusChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -69,5 +71,11 @@ export function EditorPane({ model, focusRequest, editorRef, viewStates, onStatu
     if (focusRequest > 0) editorRef.current?.focus();
   }, [editorRef, focusRequest]);
 
-  return <div ref={containerRef} className="wb-editor" hidden={!model} />;
+  // diff から戻ったら、ステータスバーをこのエディタの内容に戻す
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (editor && !isHidden) onStatusChange(readStatus(editor));
+  }, [editorRef, isHidden, onStatusChange]);
+
+  return <div ref={containerRef} className="wb-editor" hidden={!model || isHidden} />;
 }

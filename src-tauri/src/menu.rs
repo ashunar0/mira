@@ -49,6 +49,7 @@ pub fn install(app: &App) -> tauri::Result<()> {
             "Toggle Primary Side Bar",
             "CmdOrCtrl+B",
         )?)
+        .item(&item("toggle-diff", "Toggle Diff", "CmdOrCtrl+Shift+D")?)
         .build()?;
     let go_menu = SubmenuBuilder::new(app, "Go")
         .item(&item("quick-open", "Go to File...", "CmdOrCtrl+P")?)

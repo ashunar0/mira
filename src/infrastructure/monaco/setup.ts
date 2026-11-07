@@ -41,14 +41,36 @@ monaco.typescript.typescriptDefaults.setDiagnosticsOptions(diagnostics);
 monaco.typescript.javascriptDefaults.setDiagnosticsOptions(diagnostics);
 
 // フォントは VS Code の macOS での既定値に合わせ、行間は好みで広めにとる
-export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
+const SHARED_OPTIONS = {
   theme: THEME_NAME,
   automaticLayout: true,
   fontFamily: "Menlo, Monaco, 'Courier New', monospace",
   fontSize: 12,
   lineHeight: 22,
   stickyScroll: { enabled: true },
+};
+
+export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
+  ...SHARED_OPTIONS,
   model: null,
+};
+
+// 左右に並べて増減が色で分かるだけにする。行を戻す矢印やメニューなどの操作は出さない。
+// 変更の位置は diff 専用の列を置かず、スクロールバーの印で示す（DiffPane）
+export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructionOptions = {
+  ...SHARED_OPTIONS,
+  useInlineViewWhenSpaceIsLimited: false,
+  enableSplitViewResizing: false,
+  renderMarginRevertIcon: false,
+  renderGutterMenu: false,
+  renderIndicators: false,
+  renderOverviewRuler: false,
+  overviewRulerLanes: 1,
+  overviewRulerBorder: false,
+  hideCursorInOverviewRuler: true,
+  minimap: { enabled: false },
+  // 空白だけの変更も隠さない
+  ignoreTrimWhitespace: false,
 };
 
 export { monaco };

@@ -9,6 +9,13 @@ export const DARK_MODERN: editor.IStandaloneThemeData = {
     "editor.background": "#1F1F1F",
     "editor.foreground": "#CCCCCC",
     "editor.findMatchBackground": "#9E6A03",
+    // diff は GitHub のように、行は薄く塗り、変わった文字だけ少し濃くする
+    "diffEditor.insertedLineBackground": "#2EA04326",
+    "diffEditor.insertedTextBackground": "#2EA04366",
+    "diffEditor.removedLineBackground": "#F851491A",
+    "diffEditor.removedTextBackground": "#F8514966",
+    "diffEditorGutter.insertedLineBackground": "#3FB9504D",
+    "diffEditorGutter.removedLineBackground": "#F851494D",
     "editorGutter.addedBackground": "#2EA043",
     "editorGutter.deletedBackground": "#F85149",
     "editorGutter.modifiedBackground": "#0078D4",

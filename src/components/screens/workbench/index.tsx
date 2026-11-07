@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { baseName } from "../../../features/files/lib/path";
 import { useWorkspaceWatcher } from "../../../features/files/watcher";
-import { useGitDecorationsQuery, useRefreshGitStatus } from "../../../features/git/queries";
+import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { closeWindow, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import type { monaco } from "../../../infrastructure/monaco/setup";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
 import { Breadcrumbs } from "./breadcrumbs";
+import { DiffPane } from "./diffPane";
 import { EditorPane } from "./editorPane";
 import { Explorer } from "./explorer";
 import { COMMAND_PREFIX, type Command, QuickOpen } from "./quickOpen";
@@ -29,7 +30,9 @@ export function Workbench() {
   const [isSidebarVisible, setIsSidebarVisible] = useStoredPreference("mira.sidebarVisible", true);
   const [editorStatus, setEditorStatus] = useState<EditorStatus | null>(null);
   const [quickOpenText, setQuickOpenText] = useState<string | null>(null);
+  const [isDiffWanted, setIsDiffWanted] = useState(false);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const diffEditorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
   const editorTabs = useEditorTabs(editorRef);
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
   const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
@@ -38,6 +41,18 @@ export function Workbench() {
     editorTabs.handleFileChanges(changes);
     void refreshGitStatus();
   });
+
+  // diff のまま別のファイルへ移れるよう、タブごとではなく全体で持つ。変更がないファイルは普通に開く
+  const canShowDiff = activeModel !== null && activeTab !== null && gitDecorations?.has(activeTab.path) === true;
+  const { data: headText } = useHeadTextQuery(isDiffWanted && canShowDiff ? activeTab.path : null);
+  const isDiffVisible = isDiffWanted && canShowDiff && headText !== undefined;
+
+  const toggleDiff = () => {
+    if (!canShowDiff) return;
+    setIsDiffWanted(!isDiffVisible);
+    // エディタへ戻るときはカーソルも戻す
+    if (isDiffVisible) editorTabs.activate(activeTab.path);
+  };
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
 
@@ -64,10 +79,17 @@ export function Workbench() {
       { id: "save", label: "File: Save", keybinding: ["⌘", "S"], run: editorTabs.saveActive },
       { id: "close-tab", label: "View: Close Editor", keybinding: ["⌘", "W"], run: closeActiveOrWindow },
       { id: "toggle-sidebar", label: "View: Toggle Primary Side Bar Visibility", keybinding: ["⌘", "B"], run: toggleSidebar },
+      { id: "toggle-diff", label: "View: Toggle Diff", keybinding: ["⇧", "⌘", "D"], run: toggleDiff },
+      ...(isDiffVisible
+        ? [
+            { id: "next-change", label: "View: Next Change", keybinding: ["⌥", "⌘", "↓"], run: () => diffEditorRef.current?.goToDiff("next") },
+            { id: "previous-change", label: "View: Previous Change", keybinding: ["⌥", "⌘", "↑"], run: () => diffEditorRef.current?.goToDiff("previous") },
+          ]
+        : []),
       { id: "quick-open", label: "Go to File...", keybinding: ["⌘", "P"], run: () => setQuickOpenText("") },
     ];
     // Monaco の編集コマンドも並べる。パレットは自前なので Monaco 自身のパレットは除く
-    const editor = editorRef.current;
+    const editor = diffEditorRef.current?.getModifiedEditor() ?? editorRef.current;
     const editorCommands: Command[] = editor?.getModel()
       ? editor
           .getSupportedActions()
@@ -93,6 +115,7 @@ export function Workbench() {
     save: editorTabs.saveActive,
     "close-tab": closeActiveOrWindow,
     "toggle-sidebar": toggleSidebar,
+    "toggle-diff": toggleDiff,
     "quick-open": () => setQuickOpenText(""),
     "command-palette": showCommands,
     quit: () => void closeWindow(),
@@ -147,6 +170,9 @@ export function Workbench() {
               tabs={tabs}
               activePath={activeTab?.path ?? null}
               gitDecorations={gitDecorations}
+              canShowDiff={canShowDiff}
+              isDiffVisible={isDiffVisible}
+              onToggleDiff={toggleDiff}
               onActivate={editorTabs.activate}
               onPin={editorTabs.pin}
               onClose={(path) => void editorTabs.closeTab(path)}
@@ -156,11 +182,21 @@ export function Workbench() {
           <div className="wb-editor-content">
             <EditorPane
               model={activeModel}
+              isHidden={isDiffVisible}
               focusRequest={focusRequest}
               editorRef={editorRef}
               viewStates={viewStates}
               onStatusChange={setEditorStatus}
             />
+            {isDiffVisible && activeModel && (
+              <DiffPane
+                model={activeModel}
+                originalText={headText ?? ""}
+                focusRequest={focusRequest}
+                editorRef={diffEditorRef}
+                onStatusChange={setEditorStatus}
+              />
+            )}
             {!activeTab && <Watermark />}
             {activeTab?.error && <div className="wb-editor-message">{activeTab.error}</div>}
           </div>

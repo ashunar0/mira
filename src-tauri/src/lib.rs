@@ -25,6 +25,7 @@ pub fn run() {
             files::rename_path,
             files::trash_path,
             git::git_status,
+            git::git_head_text,
             watcher::watch_workspace,
         ])
         .run(tauri::generate_context!())

@@ -143,6 +143,18 @@ pub fn git_status(root: String) -> Vec<GitFileStatus> {
     files
 }
 
+/// 最後のコミット時点の内容を返す。そのコミットになければ None。
+/// エディタと同じく BOM は除く。残すと 1 行目が変更として出てしまう。
+#[tauri::command(async)]
+pub fn git_head_text(path: String) -> Option<String> {
+    let path = Path::new(&path);
+    let dir = path.parent()?;
+    let name = path.file_name()?.to_string_lossy();
+    let bytes = run_git(dir, &["show", &format!("HEAD:./{name}")]).ok()?;
+    let text = String::from_utf8(bytes).ok()?;
+    Some(text.strip_prefix('\u{FEFF}').map(str::to_owned).unwrap_or(text))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -265,6 +277,30 @@ mod tests {
             files.contains(&("sub/inner/a.txt".to_owned(), GitFileState::Modified)),
             "{files:?}"
         );
+    }
+
+    fn head_text(path: PathBuf) -> Option<String> {
+        git_head_text(path.to_string_lossy().into_owned())
+    }
+
+    #[test]
+    fn head_text_is_the_last_committed_content() {
+        let root = temp_repo("head");
+        fs::write(root.join("sub/b.txt"), "changed\n").unwrap();
+        fs::write(root.join("new.txt"), "new\n").unwrap();
+
+        assert_eq!(head_text(root.join("sub/b.txt")).as_deref(), Some("b\n"));
+        assert_eq!(head_text(root.join("new.txt")), None);
+    }
+
+    #[test]
+    fn head_text_hides_the_bom_like_the_editor_does() {
+        let root = temp_repo("bom");
+        fs::write(root.join("bom.txt"), b"\xEF\xBB\xBFhello\n").unwrap();
+        git(&root, &["add", "bom.txt"]);
+        git(&root, &["commit", "-qm", "bom"]);
+
+        assert_eq!(head_text(root.join("bom.txt")).as_deref(), Some("hello\n"));
     }
 
     #[test]
