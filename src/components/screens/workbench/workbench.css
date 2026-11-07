@@ -1,26 +1,35 @@
-/* 色は VS Code の Dark Modern、寸法は VS Code の各 Part の定数に合わせる */
+/* 色は Kanagawa Dragon の色を役割ごとに当てる。寸法は VS Code の各 Part の定数に合わせる */
 :root {
   color-scheme: dark;
-  --bg-chrome: #181818;
-  --bg-editor: #1f1f1f;
-  --border: #2b2b2b;
-  --fg: #cccccc;
-  --fg-muted: #9d9d9d;
-  --fg-active: #ffffff;
-  --accent: #0078d4;
-  --list-hover: #2a2d2e;
-  --list-active-selection: #04395e;
-  --list-inactive-selection: #37373d;
-  --toolbar-hover: #5a5d5e50;
-  --gutter-added: #2ea043;
-  --gutter-modified: #0078d4;
-  --gutter-removed: #f85149;
-  --git-modified: #e2c08d;
-  --git-added: #81b88b;
-  --git-untracked: #73c991;
-  --git-renamed: #73c991;
-  --git-deleted: #c74e39;
-  --git-conflicted: #e4676b;
+  --bg-chrome: #12120f;
+  --bg-editor: #181616;
+  --bg-input: #0d0c0c;
+  --bg-code: #282727;
+  --border: #282727;
+  --border-strong: #393836;
+  --fg: #c5c9c5;
+  --fg-muted: #a6a69c;
+  --fg-active: #e4e7e4;
+  --accent: #8ba4b0;
+  --link: #7fb4ca;
+  --button: #2d4f67;
+  --button-hover: #223249;
+  --error: #c34043;
+  --error-bg: #43242b;
+  --match: #2d4f67;
+  --list-hover: #1d1c19;
+  --list-active-selection: #223249;
+  --list-inactive-selection: #282727;
+  --toolbar-hover: #39383680;
+  --gutter-added: #76946a;
+  --gutter-modified: #dca561;
+  --gutter-removed: #c34043;
+  --git-modified: #c4b28a;
+  --git-added: #87a987;
+  --git-untracked: #87a987;
+  --git-renamed: #87a987;
+  --git-deleted: #c4746e;
+  --git-conflicted: #e46876;
 }
 
 * {
@@ -130,12 +139,12 @@ button {
   justify-content: center;
   width: 28px;
   height: 100%;
-  color: #e7e7e799;
+  color: var(--fg-muted);
 }
 
 .wb-activity-item:hover,
 .wb-activity-item[data-active="true"] {
-  color: #e7e7e7;
+  color: var(--fg-active);
 }
 
 .wb-activity-item[data-active="true"]::after {
@@ -184,14 +193,14 @@ button {
 .wb-button {
   width: 100%;
   height: 26px;
-  color: #ffffff;
-  background: var(--accent);
+  color: var(--fg-active);
+  background: var(--button);
   border: 1px solid #ffffff1a;
   border-radius: 2px;
 }
 
 .wb-button:hover {
-  background: #026ec1;
+  background: var(--button-hover);
 }
 
 .wb-explorer {
@@ -323,7 +332,7 @@ button {
   padding: 0 3px;
   color: var(--fg);
   font: inherit;
-  background: #313131;
+  background: var(--bg-input);
   border: 1px solid var(--accent);
   outline: none;
   user-select: text;
@@ -331,7 +340,7 @@ button {
 }
 
 .wb-name-input input[aria-invalid="true"] {
-  border-color: #be1100;
+  border-color: var(--error);
 }
 
 .wb-name-error {
@@ -344,8 +353,8 @@ button {
   font-size: 12px;
   line-height: 1.4;
   white-space: normal;
-  background: #5a1d1d;
-  border: 1px solid #be1100;
+  background: var(--error-bg);
+  border: 1px solid var(--error);
   border-top: 0;
 }
 
@@ -518,7 +527,7 @@ button {
   align-items: center;
   height: 22px;
   padding-left: 12px;
-  color: #a9a9a9;
+  color: var(--fg-muted);
   background: var(--bg-editor);
   font-size: 12px;
   overflow: hidden;
@@ -689,7 +698,6 @@ button {
 
 .wb-markdown-body :is(h1, h2, h3, h4, h5, h6) {
   margin: 1.8em 0 0.6em;
-  color: var(--fg-active);
   line-height: 1.4;
 }
 
@@ -716,7 +724,7 @@ button {
 }
 
 .wb-markdown-body a {
-  color: #4daafc;
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -728,7 +736,7 @@ button {
   padding: 0.15em 0.35em;
   font: 0.9em Menlo, Monaco, "Courier New", monospace;
   letter-spacing: 0;
-  background: #2b2b2b;
+  background: var(--bg-code);
   border-radius: 4px;
 }
 
@@ -748,7 +756,7 @@ button {
 .wb-markdown-body blockquote {
   padding-left: 1em;
   color: var(--fg-muted);
-  border-left: 3px solid #3c3c3c;
+  border-left: 3px solid var(--border-strong);
 }
 
 .wb-markdown-body img {
@@ -761,7 +769,7 @@ button {
 
 .wb-markdown-body :is(th, td) {
   padding: 4px 12px;
-  border: 1px solid #3c3c3c;
+  border: 1px solid var(--border-strong);
 }
 
 .wb-markdown-body hr {
@@ -802,8 +810,8 @@ button {
   padding: 0 52px 0 6px;
   color: var(--fg);
   font: inherit;
-  background: #313131;
-  border: 1px solid #3c3c3c;
+  background: var(--bg-input);
+  border: 1px solid var(--border-strong);
   border-radius: 2px;
   outline: none;
   user-select: text;
@@ -815,7 +823,7 @@ button {
 }
 
 .wb-search-input[aria-invalid="true"] {
-  border-color: #be1100;
+  border-color: var(--error);
 }
 
 .wb-search-toggles {
@@ -842,8 +850,8 @@ button {
 }
 
 .wb-search-toggle[aria-pressed="true"] {
-  background: #2489db82;
-  border-color: #2488db;
+  background: var(--match);
+  border-color: var(--accent);
 }
 
 .wb-search-toggle .codicon {
@@ -929,5 +937,5 @@ button {
 
 .wb-search-match mark {
   color: inherit;
-  background: #9e6a0380;
+  background: var(--match);
 }

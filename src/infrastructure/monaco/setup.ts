@@ -5,9 +5,9 @@ import HtmlWorker from "monaco-editor/languages/features/html/html.worker.js?wor
 import JsonWorker from "monaco-editor/languages/features/json/json.worker.js?worker";
 import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
 import { installHoverCopyFeedback } from "./hoverCopyFeedback";
-import { DARK_MODERN } from "./theme";
+import { KANAGAWA_DRAGON } from "./theme";
 
-const THEME_NAME = "dark-modern";
+const THEME_NAME = "kanagawa-dragon";
 
 self.MonacoEnvironment = {
   getWorker(_workerId, label) {
@@ -31,7 +31,7 @@ self.MonacoEnvironment = {
   },
 };
 
-monaco.editor.defineTheme(THEME_NAME, DARK_MODERN);
+monaco.editor.defineTheme(THEME_NAME, KANAGAWA_DRAGON);
 installHoverCopyFeedback();
 
 // Monaco はプロジェクトの tsconfig も node_modules も知らないので、意味解析を動かすと import が
@@ -48,6 +48,8 @@ const SHARED_OPTIONS = {
   fontSize: 12,
   lineHeight: 22,
   stickyScroll: { enabled: true },
+  // カーソルのある行は、行番号の色で分かる
+  renderLineHighlight: "none" as const,
 };
 
 export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {

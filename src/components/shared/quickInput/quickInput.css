@@ -12,9 +12,9 @@
   flex-direction: column;
   width: min(600px, calc(100vw - 40px));
   transform: translateX(-50%);
-  color: #cccccc;
-  background: #222222;
-  border: 1px solid #313131;
+  color: var(--fg);
+  background: var(--bg-chrome);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   box-shadow: 0 8px 24px #00000080;
   overflow: hidden;
@@ -27,8 +27,8 @@
   padding: 0 6px;
   color: inherit;
   font: inherit;
-  background: #313131;
-  border: 1px solid #3c3c3c;
+  background: var(--bg-input);
+  border: 1px solid var(--border-strong);
   border-radius: 2px;
   outline: none;
   user-select: text;
@@ -36,11 +36,11 @@
 }
 
 .qi-input:focus {
-  border-color: #0078d4;
+  border-color: var(--accent);
 }
 
 .qi-input::placeholder {
-  color: #989898;
+  color: var(--fg-muted);
 }
 
 .qi-list {
@@ -60,12 +60,12 @@
 }
 
 .qi-row:hover {
-  background: #2a2d2e;
+  background: var(--list-hover);
 }
 
 .qi-row[aria-selected="true"] {
-  color: #ffffff;
-  background: #04395e;
+  color: var(--fg-active);
+  background: var(--list-active-selection);
 }
 
 .qi-label {
@@ -80,17 +80,17 @@
   min-width: 0;
   margin-left: 8px;
   font-size: 12px;
-  color: #9d9d9d;
+  color: var(--fg-muted);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .qi-row[aria-selected="true"] .qi-description {
-  color: #cccccc;
+  color: var(--fg);
 }
 
 .qi-match {
-  color: #2aaaff;
+  color: var(--link);
   font-weight: 600;
 }
 
@@ -118,5 +118,5 @@
   height: 22px;
   padding: 0 6px;
   line-height: 22px;
-  color: #9d9d9d;
+  color: var(--fg-muted);
 }
