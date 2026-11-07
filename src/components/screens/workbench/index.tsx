@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { baseName } from "../../../features/files/lib/path";
+import { useWorkspaceWatcher } from "../../../features/files/watcher";
 import { closeWindow, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import type { monaco } from "../../../infrastructure/monaco/setup";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
@@ -30,6 +31,7 @@ export function Workbench() {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const editorTabs = useEditorTabs();
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest } = editorTabs;
+  useWorkspaceWatcher(rootPath, editorTabs.handleFileChanges);
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
 

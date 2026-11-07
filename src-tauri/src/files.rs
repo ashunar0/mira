@@ -1,4 +1,4 @@
-use std::{fs, io, path::Path, time::UNIX_EPOCH};
+use std::{ffi::OsStr, fs, io, path::Path, time::UNIX_EPOCH};
 
 use ignore::WalkBuilder;
 use serde::Serialize;
@@ -20,6 +20,10 @@ const EXCLUDED_NAMES: &[&str] = &[
     "node_modules",
     "bower_components",
 ];
+
+pub fn is_excluded_name(name: &OsStr) -> bool {
+    EXCLUDED_NAMES.iter().any(|excluded| name == OsStr::new(excluded))
+}
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,6 +47,10 @@ impl FileError {
             kind,
             message: message.into(),
         }
+    }
+
+    pub fn watch(error: impl std::fmt::Display) -> Self {
+        Self::new(FileErrorKind::Io, format!("Unable to watch for file changes: {error}"))
     }
 }
 
@@ -102,11 +110,7 @@ pub fn list_workspace_files(root: String) -> Result<Vec<String>, FileError> {
     fs::metadata(&root)?;
     let mut paths: Vec<String> = WalkBuilder::new(&root)
         .hidden(false)
-        .filter_entry(|entry| {
-            !EXCLUDED_NAMES
-                .iter()
-                .any(|name| entry.file_name() == std::ffi::OsStr::new(name))
-        })
+        .filter_entry(|entry| !is_excluded_name(entry.file_name()))
         .build()
         .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_some_and(|kind| kind.is_file()))

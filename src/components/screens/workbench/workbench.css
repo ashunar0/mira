@@ -370,6 +370,10 @@ button {
   flex: 1;
 }
 
+.wb-tab[data-deleted="true"] .wb-tab-label {
+  text-decoration: line-through;
+}
+
 .wb-tab-description {
   margin-left: 6px;
   font-size: 12px;

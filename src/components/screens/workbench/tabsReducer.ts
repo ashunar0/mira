@@ -3,6 +3,8 @@ export type Tab = {
   name: string;
   isPreview: boolean;
   isDirty: boolean;
+  /** 開いた後にディスクから消えた。保存すれば作り直せるのでタブは残す */
+  isDeleted: boolean;
   /** 開けなかったファイルは、タブを出してエディタの代わりに理由を表示する */
   error: string | null;
 };
@@ -19,6 +21,7 @@ export type TabsAction =
   | { type: "activate"; path: string }
   | { type: "pin"; path: string }
   | { type: "setDirty"; path: string; isDirty: boolean }
+  | { type: "setDeleted"; path: string; isDeleted: boolean }
   | { type: "close"; path: string }
   | { type: "closeAll" };
 
@@ -45,7 +48,7 @@ function open(state: TabsState, action: Extract<TabsAction, { type: "open" }>): 
     };
   }
 
-  const tab: Tab = { path, name, isPreview: !pin, isDirty: false, error };
+  const tab: Tab = { path, name, isPreview: !pin, isDirty: false, isDeleted: false, error };
 
   // プレビュータブは 1 つだけ。次のプレビューはその場所を引き継ぐ
   const previewIndex = state.tabs.findIndex((t) => t.isPreview);
@@ -79,6 +82,11 @@ export function tabsReducer(state: TabsState, action: TabsAction): TabsState {
       // 編集したプレビュータブは固定する
       const isPreview = tab.isPreview && !action.isDirty;
       return updateTab(state, action.path, { isDirty: action.isDirty, isPreview });
+    }
+    case "setDeleted": {
+      const tab = state.tabs.find((t) => t.path === action.path);
+      if (!tab || tab.isDeleted === action.isDeleted) return state;
+      return updateTab(state, action.path, { isDeleted: action.isDeleted });
     }
     case "close": {
       const recent = state.recent.filter((p) => p !== action.path);

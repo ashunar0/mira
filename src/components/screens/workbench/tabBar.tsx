@@ -37,7 +37,8 @@ export function TabBar({ tabs, activePath, onActivate, onPin, onClose }: Props) 
             aria-selected={isActive}
             data-preview={tab.isPreview}
             data-dirty={tab.isDirty}
-            title={tab.path}
+            data-deleted={tab.isDeleted}
+            title={tab.isDeleted ? `${tab.path} (deleted)` : tab.path}
             onMouseDown={(event) => {
               if (event.button === 0) onActivate(tab.path);
             }}

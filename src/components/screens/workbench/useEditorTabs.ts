@@ -3,7 +3,8 @@ import { describeFileError, isFileError } from "../../../features/files/lib/file
 import { baseName } from "../../../features/files/lib/path";
 import { useSaveFileMutation } from "../../../features/files/mutations";
 import { useFileReader } from "../../../features/files/queries";
-import type { FileContent } from "../../../features/files/type";
+import type { FileChanges, FileContent } from "../../../features/files/type";
+import { replaceModelText } from "../../../infrastructure/monaco/replaceModelText";
 import { monaco } from "../../../infrastructure/monaco/setup";
 import { askOverwrite, askSaveChoice, showError } from "../../../infrastructure/nativeDialog";
 import { initialTabsState, tabsReducer } from "./tabsReducer";
@@ -15,6 +16,10 @@ type Buffer = {
   mtimeMs: number;
   hasBom: boolean;
   subscription: monaco.IDisposable;
+  /** ディスクの内容を反映している最中。編集として扱わない */
+  isReloading: boolean;
+  /** 読み直しが重なったら、最後に始めたものだけを反映する */
+  latestReload: number;
 };
 
 export function useEditorTabs() {
@@ -48,7 +53,7 @@ export function useEditorTabs() {
     const model = monaco.editor.createModel(content.text, undefined, uri);
     const subscription = model.onDidChangeContent(() => {
       const buffer = buffers.current.get(path);
-      if (!buffer) return;
+      if (!buffer || buffer.isReloading) return;
       const isDirty = model.getAlternativeVersionId() !== buffer.savedVersionId;
       dispatch({ type: "setDirty", path, isDirty });
     });
@@ -58,6 +63,8 @@ export function useEditorTabs() {
       mtimeMs: content.mtimeMs,
       hasBom: content.hasBom,
       subscription,
+      isReloading: false,
+      latestReload: 0,
     });
   }, []);
 
@@ -108,6 +115,7 @@ export function useEditorTabs() {
       // 保存中に打った分は dirty のまま残す
       const isDirty = buffer.model.getAlternativeVersionId() !== versionId;
       dispatch({ type: "setDirty", path, isDirty });
+      dispatch({ type: "setDeleted", path, isDeleted: false });
       return true;
     },
     [writeFile],
@@ -120,13 +128,58 @@ export function useEditorTabs() {
       const next = previous.then(() => {
         const buffer = buffers.current.get(path);
         if (!buffer) return false;
-        if (buffer.model.getAlternativeVersionId() === buffer.savedVersionId) return true;
+        const isDeleted = stateRef.current.tabs.some((tab) => tab.path === path && tab.isDeleted);
+        const isClean = buffer.model.getAlternativeVersionId() === buffer.savedVersionId;
+        if (isClean && !isDeleted) return true;
         return writeBuffer(path, buffer, buffer.mtimeMs);
       });
       saveChains.current.set(path, next);
       return next;
     },
     [writeBuffer],
+  );
+
+  /** 開いているファイルをディスクの内容に追従させる。未保存の編集には触らない */
+  const reloadFromDisk = useCallback(
+    async (path: string, buffer: Buffer) => {
+      const request = ++buffer.latestReload;
+      const isDirty = () => buffer.model.getAlternativeVersionId() !== buffer.savedVersionId;
+      try {
+        const content = await readFile(path);
+        if (request !== buffer.latestReload || buffers.current.get(path) !== buffer) return;
+        dispatch({ type: "setDeleted", path, isDeleted: false });
+        // 未保存なら mtime も古いままにして、保存時の衝突確認に任せる
+        if (isDirty()) return;
+        buffer.isReloading = true;
+        try {
+          replaceModelText(buffer.model, content.text);
+        } finally {
+          buffer.isReloading = false;
+        }
+        buffer.savedVersionId = buffer.model.getAlternativeVersionId();
+        buffer.mtimeMs = content.mtimeMs;
+        buffer.hasBom = content.hasBom;
+      } catch (cause) {
+        if (request !== buffer.latestReload) return;
+        if (isFileError(cause) && cause.kind === "notFound") {
+          dispatch({ type: "setDeleted", path, isDeleted: true });
+        }
+        // バイナリに変わった等で読めない時は、手元の内容をそのまま残す
+      }
+    },
+    [readFile],
+  );
+
+  const handleFileChanges = useCallback(
+    ({ paths, needsRescan }: FileChanges) => {
+      for (const [path, buffer] of buffers.current) {
+        // フォルダごと移動されると、中のファイルのイベントは届かないことがある
+        const isAffected =
+          needsRescan || paths.some((changed) => path === changed || path.startsWith(`${changed}/`));
+        if (isAffected) void reloadFromDisk(path, buffer);
+      }
+    },
+    [reloadFromDisk],
   );
 
   const saveActive = useCallback(() => {
@@ -199,6 +252,7 @@ export function useEditorTabs() {
     pin,
     closeTab,
     closeAll,
+    handleFileChanges,
     getHistory,
     saveActive,
     confirmDiscardAll,
