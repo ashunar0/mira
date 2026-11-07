@@ -1,4 +1,4 @@
-import type { MouseEvent } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { baseName, parentPath } from "../../../features/files/lib/path";
 import type { GitFileState } from "../../../features/git/type";
 import { FileIcon } from "./fileIcon";
@@ -8,17 +8,15 @@ type Props = {
   tabs: Tab[];
   activePath: string | null;
   gitDecorations: ReadonlyMap<string, GitFileState> | undefined;
-  /** アクティブなファイルに変更があるときだけ、diff の切り替えボタンを出す */
-  canShowDiff: boolean;
-  isDiffVisible: boolean;
-  onToggleDiff: () => void;
+  /** タブの右に置くボタン */
+  actions: ReactNode;
   onActivate: (path: string) => void;
   onPin: (path: string) => void;
   onClose: (path: string) => void;
 };
 
 export function TabBar(props: Props) {
-  const { tabs, activePath, gitDecorations, canShowDiff, isDiffVisible, onToggleDiff } = props;
+  const { tabs, activePath, gitDecorations, actions } = props;
   const { onActivate, onPin, onClose } = props;
   const handleAuxClick = (event: MouseEvent, path: string) => {
     if (event.button === 1) onClose(path);
@@ -74,19 +72,7 @@ export function TabBar(props: Props) {
           );
         })}
       </div>
-      {canShowDiff && (
-        <div className="wb-tabs-actions">
-          <button
-            type="button"
-            className="wb-icon-button"
-            title="Toggle Diff (⇧⌘D)"
-            aria-pressed={isDiffVisible}
-            onClick={onToggleDiff}
-          >
-            <i className="codicon codicon-diff" />
-          </button>
-        </div>
-      )}
+      {actions && <div className="wb-tabs-actions">{actions}</div>}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Menu } from "@tauri-apps/api/menu";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { revealItemInDir } from "@tauri-apps/plugin-opener";
+import { openUrl, revealItemInDir } from "@tauri-apps/plugin-opener";
 
 export type ContextMenuEntry = { label: string; run: () => void } | "separator";
 
@@ -18,6 +18,10 @@ export async function showContextMenu(entries: ContextMenuEntry[]): Promise<void
 
 export function copyText(text: string): Promise<void> {
   return writeText(text);
+}
+
+export function openExternalUrl(url: string): Promise<void> {
+  return openUrl(url);
 }
 
 export function revealInFinder(path: string): Promise<void> {

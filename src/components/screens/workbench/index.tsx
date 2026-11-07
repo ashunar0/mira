@@ -9,6 +9,7 @@ import { Breadcrumbs } from "./breadcrumbs";
 import { DiffPane } from "./diffPane";
 import { EditorPane } from "./editorPane";
 import { Explorer } from "./explorer";
+import { MarkdownPreview } from "./markdownPreview";
 import { COMMAND_PREFIX, type Command, QuickOpen } from "./quickOpen";
 import { Sash } from "./sash";
 import { type EditorStatus, StatusBar } from "./statusBar";
@@ -30,9 +31,11 @@ export function Workbench() {
   const [isSidebarVisible, setIsSidebarVisible] = useStoredPreference("mira.sidebarVisible", true);
   const [editorStatus, setEditorStatus] = useState<EditorStatus | null>(null);
   const [quickOpenText, setQuickOpenText] = useState<string | null>(null);
-  const [isDiffWanted, setIsDiffWanted] = useState(false);
+  // 切り替えたまま別のファイルへ移れるよう、タブごとではなく全体で持つ。出せないファイルは普通に開く
+  const [wantedView, setWantedView] = useState<"editor" | "diff" | "preview">("editor");
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const diffEditorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
+  const previewTopLineRef = useRef<(() => number) | null>(null);
   const editorTabs = useEditorTabs(editorRef);
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
   const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
@@ -42,16 +45,35 @@ export function Workbench() {
     void refreshGitStatus();
   });
 
-  // diff のまま別のファイルへ移れるよう、タブごとではなく全体で持つ。変更がないファイルは普通に開く
   const canShowDiff = activeModel !== null && activeTab !== null && gitDecorations?.has(activeTab.path) === true;
   const { data: headText } = useHeadTextQuery(activeModel && activeTab ? activeTab.path : null);
-  const isDiffVisible = isDiffWanted && canShowDiff && headText !== undefined;
+  const isDiffVisible = wantedView === "diff" && canShowDiff && headText !== undefined;
+  const canShowPreview = activeModel?.getLanguageId() === "markdown";
+  const isPreviewVisible = wantedView === "preview" && canShowPreview;
+
+  /** エディタへ戻してフォーカスも移す。target があれば、その行が見える位置まで動かす */
+  const showEditor = (target?: { line: number; moveCursor: boolean }) => {
+    const editor = editorRef.current;
+    if (editor && target) {
+      // 編集に入るときは、その行の少し上も見えるようにする
+      const topLine = target.moveCursor ? Math.max(target.line - 3, 1) : target.line;
+      editor.setScrollTop(editor.getTopForLineNumber(topLine));
+      if (target.moveCursor) editor.setPosition({ lineNumber: target.line, column: 1 });
+    }
+    setWantedView("editor");
+    if (activeTab) editorTabs.activate(activeTab.path);
+  };
 
   const toggleDiff = () => {
     if (!canShowDiff) return;
-    setIsDiffWanted(!isDiffVisible);
-    // エディタへ戻るときはカーソルも戻す
-    if (isDiffVisible) editorTabs.activate(activeTab.path);
+    if (isDiffVisible) showEditor();
+    else setWantedView("diff");
+  };
+
+  const togglePreview = () => {
+    if (!canShowPreview) return;
+    if (isPreviewVisible) showEditor({ line: previewTopLineRef.current?.() ?? 1, moveCursor: false });
+    else setWantedView("preview");
   };
 
   const toggleSidebar = () => setIsSidebarVisible((visible) => !visible);
@@ -80,6 +102,7 @@ export function Workbench() {
       { id: "close-tab", label: "View: Close Editor", keybinding: ["⌘", "W"], run: closeActiveOrWindow },
       { id: "toggle-sidebar", label: "View: Toggle Primary Side Bar Visibility", keybinding: ["⌘", "B"], run: toggleSidebar },
       { id: "toggle-diff", label: "View: Toggle Diff", keybinding: ["⇧", "⌘", "D"], run: toggleDiff },
+      { id: "toggle-preview", label: "Markdown: Toggle Preview", keybinding: ["⇧", "⌘", "V"], run: togglePreview },
       ...(isDiffVisible
         ? [
             { id: "next-change", label: "View: Next Change", keybinding: ["⌥", "⌘", "↓"], run: () => diffEditorRef.current?.goToDiff("next") },
@@ -116,6 +139,7 @@ export function Workbench() {
     "close-tab": closeActiveOrWindow,
     "toggle-sidebar": toggleSidebar,
     "toggle-diff": toggleDiff,
+    "toggle-preview": togglePreview,
     "quick-open": () => setQuickOpenText(""),
     "command-palette": showCommands,
     quit: () => void closeWindow(),
@@ -170,9 +194,34 @@ export function Workbench() {
               tabs={tabs}
               activePath={activeTab?.path ?? null}
               gitDecorations={gitDecorations}
-              canShowDiff={canShowDiff}
-              isDiffVisible={isDiffVisible}
-              onToggleDiff={toggleDiff}
+              actions={
+                canShowPreview || canShowDiff ? (
+                  <>
+                    {canShowPreview && (
+                      <button
+                        type="button"
+                        className="wb-icon-button"
+                        title="Toggle Preview (⇧⌘V)"
+                        aria-pressed={isPreviewVisible}
+                        onClick={togglePreview}
+                      >
+                        <i className="codicon codicon-open-preview" />
+                      </button>
+                    )}
+                    {canShowDiff && (
+                      <button
+                        type="button"
+                        className="wb-icon-button"
+                        title="Toggle Diff (⇧⌘D)"
+                        aria-pressed={isDiffVisible}
+                        onClick={toggleDiff}
+                      >
+                        <i className="codicon codicon-diff" />
+                      </button>
+                    )}
+                  </>
+                ) : null
+              }
               onActivate={editorTabs.activate}
               onPin={editorTabs.pin}
               onClose={(path) => void editorTabs.closeTab(path)}
@@ -182,8 +231,8 @@ export function Workbench() {
           <div className="wb-editor-content">
             <EditorPane
               model={activeModel}
-              isHidden={isDiffVisible}
-              gutterBaseText={isDiffVisible ? null : (headText ?? null)}
+              isHidden={isDiffVisible || isPreviewVisible}
+              gutterBaseText={isDiffVisible || isPreviewVisible ? null : (headText ?? null)}
               focusRequest={focusRequest}
               editorRef={editorRef}
               viewStates={viewStates}
@@ -196,6 +245,14 @@ export function Workbench() {
                 focusRequest={focusRequest}
                 editorRef={diffEditorRef}
                 onStatusChange={setEditorStatus}
+              />
+            )}
+            {isPreviewVisible && activeModel && (
+              <MarkdownPreview
+                model={activeModel}
+                editorRef={editorRef}
+                topLineRef={previewTopLineRef}
+                onEditLine={(line) => showEditor({ line, moveCursor: true })}
               />
             )}
             {!activeTab && <Watermark />}

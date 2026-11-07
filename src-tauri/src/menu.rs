@@ -50,6 +50,7 @@ pub fn install(app: &App) -> tauri::Result<()> {
             "CmdOrCtrl+B",
         )?)
         .item(&item("toggle-diff", "Toggle Diff", "CmdOrCtrl+Shift+D")?)
+        .item(&item("toggle-preview", "Toggle Markdown Preview", "CmdOrCtrl+Shift+V")?)
         .build()?;
     let go_menu = SubmenuBuilder::new(app, "Go")
         .item(&item("quick-open", "Go to File...", "CmdOrCtrl+P")?)

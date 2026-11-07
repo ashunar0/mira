@@ -397,6 +397,7 @@ button {
   flex: none;
   display: flex;
   align-items: center;
+  gap: 4px;
   padding: 0 8px;
   background: var(--bg-chrome);
   box-shadow: inset 0 -1px 0 var(--border);
@@ -660,4 +661,111 @@ button {
   border-top: 4px solid transparent;
   border-bottom: 4px solid transparent;
   border-left: 5px solid var(--gutter-removed);
+}
+
+/* Markdown プレビュー */
+.wb-markdown {
+  overflow-y: auto;
+  outline: none;
+  background: var(--bg-editor);
+  cursor: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.wb-markdown-body {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 2;
+  letter-spacing: 0.04em;
+}
+
+.wb-markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.wb-markdown-body :is(h1, h2, h3, h4, h5, h6) {
+  margin: 1.8em 0 0.6em;
+  color: var(--fg-active);
+  line-height: 1.4;
+}
+
+.wb-markdown-body h1 {
+  font-size: 1.8em;
+}
+
+.wb-markdown-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.4em;
+  border-bottom: 1px solid var(--border);
+}
+
+.wb-markdown-body h3 {
+  font-size: 1.15em;
+}
+
+.wb-markdown-body :is(p, ul, ol, pre, table, blockquote) {
+  margin: 0 0 1em;
+}
+
+.wb-markdown-body :is(ul, ol) {
+  padding-left: 1.6em;
+}
+
+.wb-markdown-body a {
+  color: #4daafc;
+  text-decoration: none;
+}
+
+.wb-markdown-body a:hover {
+  text-decoration: underline;
+}
+
+.wb-markdown-body code {
+  padding: 0.15em 0.35em;
+  font: 0.9em Menlo, Monaco, "Courier New", monospace;
+  letter-spacing: 0;
+  background: #2b2b2b;
+  border-radius: 4px;
+}
+
+.wb-markdown-body pre {
+  padding: 12px 16px;
+  overflow-x: auto;
+  line-height: 1.5;
+  background: var(--bg-chrome);
+  border-radius: 6px;
+}
+
+.wb-markdown-body pre code {
+  padding: 0;
+  background: none;
+}
+
+.wb-markdown-body blockquote {
+  padding-left: 1em;
+  color: var(--fg-muted);
+  border-left: 3px solid #3c3c3c;
+}
+
+.wb-markdown-body img {
+  max-width: 100%;
+}
+
+.wb-markdown-body table {
+  border-collapse: collapse;
+}
+
+.wb-markdown-body :is(th, td) {
+  padding: 4px 12px;
+  border: 1px solid #3c3c3c;
+}
+
+.wb-markdown-body hr {
+  margin: 2em 0;
+  border: none;
+  border-top: 1px solid var(--border);
 }
