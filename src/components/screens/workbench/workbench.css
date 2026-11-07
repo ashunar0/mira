@@ -627,3 +627,8 @@ button {
   background-image: none;
   background-color: var(--bg-chrome);
 }
+
+/* diff で色がついた行は、行番号も白くして目立たせる */
+.monaco-diff-editor .margin-view-overlays > div:has(.gutter-insert, .gutter-delete) .line-numbers {
+  color: var(--fg-active);
+}
