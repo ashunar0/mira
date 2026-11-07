@@ -5,9 +5,7 @@ import HtmlWorker from "monaco-editor/languages/features/html/html.worker.js?wor
 import JsonWorker from "monaco-editor/languages/features/json/json.worker.js?worker";
 import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
 import { installHoverCopyFeedback } from "./hoverCopyFeedback";
-import { KANAGAWA_DRAGON } from "./theme";
-
-const THEME_NAME = "kanagawa-dragon";
+import { THEME_NAME } from "./theme";
 
 self.MonacoEnvironment = {
   getWorker(_workerId, label) {
@@ -31,7 +29,6 @@ self.MonacoEnvironment = {
   },
 };
 
-monaco.editor.defineTheme(THEME_NAME, KANAGAWA_DRAGON);
 installHoverCopyFeedback();
 
 // 型エラー・ホバー・定義は typescript-language-server が受け持つ（features/lsp）。組み込みのものは 1 ファイルしか
@@ -50,6 +47,8 @@ const SHARED_OPTIONS = {
   stickyScroll: { enabled: true },
   // カーソルのある行は、行番号の色で分かる
   renderLineHighlight: "none" as const,
+  // VS Code と同じく、言語サーバーの「意味に基づく色分け」を TextMate 文法の色に重ねる（Kanagawa Dragon が有効にしている）
+  "semanticHighlighting.enabled": true,
 };
 
 export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {

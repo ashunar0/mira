@@ -1,4 +1,5 @@
 import { monaco } from "../../infrastructure/monaco/setup";
+import { SEMANTIC_TOKEN_LEGEND, semanticStyleIndex } from "../../infrastructure/monaco/semanticTokenStyles";
 import { LanguageServerConnection } from "./connection";
 import { listenLanguageServer, sendToLanguageServer, startLanguageServer, stopLanguageServer } from "./transport";
 
@@ -22,8 +23,8 @@ type Location = { uri: string; range: Range };
 type LocationLink = { targetUri: string; targetSelectionRange: Range; originSelectionRange?: Range };
 
 const MARKER_OWNER = "typescript";
-/** Monaco の言語。.tsx も typescript になっている */
-const MONACO_LANGUAGES = ["typescript", "javascript"];
+/** Monaco の言語。.tsx と .jsx は色の付け方のために別の言語にしてある（syntaxHighlighting） */
+const MONACO_LANGUAGES = ["typescript", "tsx", "javascript", "jsx"];
 
 /** サーバーに伝える言語は、拡張子で決める。ほかのファイルは渡さない */
 function languageIdOf(uri: monaco.Uri): string | null {
@@ -94,6 +95,43 @@ export type WatchedFileChanges = { paths: string[]; removed: string[] };
 
 type DocumentDiagnosticReport = { kind: "full"; resultId?: string; items: Diagnostic[] } | { kind: "unchanged"; resultId: string };
 
+/** 意味に基づく色分けで、サーバーに伝える種類と修飾（LSP の標準のもの） */
+const SEMANTIC_TOKEN_TYPES = [
+  "namespace", "type", "class", "enum", "interface", "struct", "typeParameter", "parameter", "variable", "property",
+  "enumMember", "event", "function", "method", "macro", "keyword", "modifier", "comment", "string", "number",
+  "regexp", "operator", "decorator",
+];
+const SEMANTIC_TOKEN_MODIFIERS = [
+  "declaration", "definition", "readonly", "static", "deprecated", "abstract", "async", "modification",
+  "documentation", "defaultLibrary",
+];
+
+type SemanticTokensLegend = { tokenTypes: string[]; tokenModifiers: string[] };
+
+/**
+ * サーバーの「種類と修飾」を、Mira が決めた色（SEMANTIC_TOKEN_LEGEND）に置き換える。
+ * 色を変えないものは外すので、位置は相対で数え直す
+ */
+function toStyledTokens(data: number[], legend: SemanticTokensLegend): Uint32Array {
+  const styled: number[] = [];
+  let line = 0;
+  let character = 0;
+  let previousLine = 0;
+  let previousCharacter = 0;
+  for (let i = 0; i < data.length; i += 5) {
+    line += data[i];
+    character = data[i] === 0 ? character + data[i + 1] : data[i + 1];
+    const modifiers = legend.tokenModifiers.filter((_, bit) => data[i + 4] & (1 << bit));
+    const style = semanticStyleIndex(legend.tokenTypes[data[i + 3]], modifiers);
+    if (style === null) continue;
+    const deltaLine = line - previousLine;
+    styled.push(deltaLine, deltaLine === 0 ? character - previousCharacter : character, data[i + 2], style, 0);
+    previousLine = line;
+    previousCharacter = character;
+  }
+  return new Uint32Array(styled);
+}
+
 /** 打っている間は聞かず、止まってから型エラーを聞き直す */
 const DIAGNOSTICS_DELAY_MS = 300;
 
@@ -114,6 +152,8 @@ export function startTypeScriptClient(
   let connection: LanguageServerConnection | null = null;
   let serverId: number | null = null;
   let diagnosticsTimer: ReturnType<typeof setTimeout> | undefined;
+  /** 開いていないファイルが変わると、開いているファイルの色分けも変わりうる。Monaco に聞き直してもらう */
+  const semanticTokensChanged = new monaco.Emitter<void>();
   let isDisposed = false;
 
   const applyMarkers = (model: monaco.editor.ITextModel) => {
@@ -180,6 +220,7 @@ export function startTypeScriptClient(
     connection?.close();
     connection = null;
     for (const disposable of disposables) disposable.dispose();
+    semanticTokensChanged.dispose();
     monaco.editor.removeAllMarkers(MARKER_OWNER);
   };
 
@@ -203,6 +244,7 @@ export function startTypeScriptClient(
       onRequest: (method, params) => {
         if (method === "workspace/configuration") return (params as { items: unknown[] }).items.map(() => null);
         if (method === "workspace/diagnostic/refresh") refreshDiagnostics();
+        if (method === "workspace/semanticTokens/refresh") semanticTokensChanged.fire();
         // ファイルの監視の登録（client/registerCapability）は受けるだけ。変更はフォルダの監視から全部伝える
         return null;
       },
@@ -210,7 +252,9 @@ export function startTypeScriptClient(
     const rootUri = monaco.Uri.file(root).toString();
     stopListening = listenLanguageServer(started, (text) => server.receive(text), shutdown);
 
-    await server.request("initialize", {
+    const { capabilities } = await server.request<{
+      capabilities: { semanticTokensProvider?: { legend: SemanticTokensLegend } };
+    }>("initialize", {
       processId: null,
       rootUri,
       workspaceFolders: [{ uri: rootUri, name: root.slice(root.lastIndexOf("/") + 1) }],
@@ -219,6 +263,12 @@ export function startTypeScriptClient(
           synchronization: { didSave: false },
           hover: { contentFormat: ["markdown", "plaintext"] },
           definition: { linkSupport: true },
+          semanticTokens: {
+            requests: { full: true },
+            tokenTypes: SEMANTIC_TOKEN_TYPES,
+            tokenModifiers: SEMANTIC_TOKEN_MODIFIERS,
+            formats: ["relative"],
+          },
           diagnostic: { dynamicRegistration: false },
           publishDiagnostics: { tagSupport: { valueSet: [1, 2] } },
         },
@@ -227,6 +277,7 @@ export function startTypeScriptClient(
           workspaceFolders: true,
           didChangeWatchedFiles: { dynamicRegistration: true },
           diagnostics: { refreshSupport: true },
+          semanticTokens: { refreshSupport: true },
         },
       },
     });
@@ -270,6 +321,19 @@ export function startTypeScriptClient(
           );
         },
       }),
+      monaco.languages.registerDocumentSemanticTokensProvider(MONACO_LANGUAGES, {
+        onDidChange: semanticTokensChanged.event,
+        getLegend: () => ({ tokenTypes: SEMANTIC_TOKEN_LEGEND, tokenModifiers: [] }),
+        provideDocumentSemanticTokens: async (model) => {
+          const legend = capabilities.semanticTokensProvider?.legend;
+          if (!legend || !syncedModels.has(model)) return null;
+          const result = await server.request<{ data: number[] } | null>("textDocument/semanticTokens/full", {
+            textDocument: { uri: model.uri.toString() },
+          });
+          return result && { data: toStyledTokens(result.data, legend) };
+        },
+        releaseDocumentSemanticTokens: () => {},
+      }),
       // 別のファイルの定義は、タブで開いてもらう
       monaco.editor.registerEditorOpener({
         openCodeEditor: (_source, resource, selectionOrPosition) => {
@@ -301,6 +365,7 @@ export function startTypeScriptClient(
         changes: paths.map((path) => ({ uri: monaco.Uri.file(path).toString(), type: gone.has(path) ? 3 : 2 })),
       });
       refreshDiagnostics();
+      semanticTokensChanged.fire();
     },
     dispose: () => {
       shutdown();
