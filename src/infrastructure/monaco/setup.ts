@@ -1,0 +1,52 @@
+import * as monaco from "monaco-editor";
+import EditorWorker from "monaco-editor/editor/editor.worker.js?worker";
+import CssWorker from "monaco-editor/languages/features/css/css.worker.js?worker";
+import HtmlWorker from "monaco-editor/languages/features/html/html.worker.js?worker";
+import JsonWorker from "monaco-editor/languages/features/json/json.worker.js?worker";
+import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
+import { DARK_MODERN } from "./theme";
+
+const THEME_NAME = "dark-modern";
+
+self.MonacoEnvironment = {
+  getWorker(_workerId, label) {
+    switch (label) {
+      case "json":
+        return new JsonWorker();
+      case "css":
+      case "scss":
+      case "less":
+        return new CssWorker();
+      case "html":
+      case "handlebars":
+      case "razor":
+        return new HtmlWorker();
+      case "typescript":
+      case "javascript":
+        return new TsWorker();
+      default:
+        return new EditorWorker();
+    }
+  },
+};
+
+monaco.editor.defineTheme(THEME_NAME, DARK_MODERN);
+
+// Monaco はプロジェクトの tsconfig も node_modules も知らないので、意味解析を動かすと import が
+// 軒並み赤線になる。LSP を入れるまでは構文エラーだけ出す。
+const diagnostics = { noSemanticValidation: true, noSyntaxValidation: false };
+monaco.typescript.typescriptDefaults.setDiagnosticsOptions(diagnostics);
+monaco.typescript.javascriptDefaults.setDiagnosticsOptions(diagnostics);
+
+// VS Code の macOS での既定値に合わせる
+export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
+  theme: THEME_NAME,
+  automaticLayout: true,
+  fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+  fontSize: 12,
+  lineHeight: 18,
+  stickyScroll: { enabled: true },
+  model: null,
+};
+
+export { monaco };
