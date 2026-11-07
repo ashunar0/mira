@@ -38,13 +38,13 @@ const diagnostics = { noSemanticValidation: true, noSyntaxValidation: false };
 monaco.typescript.typescriptDefaults.setDiagnosticsOptions(diagnostics);
 monaco.typescript.javascriptDefaults.setDiagnosticsOptions(diagnostics);
 
-// VS Code の macOS での既定値に合わせる
+// フォントは VS Code の macOS での既定値に合わせ、行間は好みで広めにとる
 export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
   theme: THEME_NAME,
   automaticLayout: true,
   fontFamily: "Menlo, Monaco, 'Courier New', monospace",
   fontSize: 12,
-  lineHeight: 18,
+  lineHeight: 22,
   stickyScroll: { enabled: true },
   model: null,
 };
