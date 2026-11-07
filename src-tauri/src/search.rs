@@ -9,7 +9,7 @@ use std::{
 
 use ignore::WalkState;
 use regex::{Regex, RegexBuilder};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::files::workspace_walk;
 
@@ -20,6 +20,13 @@ const MAX_SEARCH_FILE_BYTES: u64 = 5 * 1024 * 1024;
 const BINARY_SNIFF_BYTES: usize = 8 * 1024;
 const PREVIEW_CHARS_BEFORE_MATCH: usize = 30;
 const PREVIEW_CHARS_AFTER_MATCH: usize = 200;
+
+#[derive(Clone, Copy, Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SearchOptions {
+    match_case: bool,
+    use_regex: bool,
+}
 
 #[derive(Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -85,7 +92,8 @@ fn search_text(text: &str, pattern: &Regex, remaining: &AtomicUsize) -> Vec<Sear
     }
     for (index, line) in text.split('\n').enumerate() {
         let line = line.strip_suffix('\r').unwrap_or(line);
-        for found in pattern.find_iter(line) {
+        // `a*` のような正規表現は空の一致を至る所で返すが、一覧に出しても意味がない
+        for found in pattern.find_iter(line).filter(|found| !found.is_empty()) {
             let took = remaining.try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_sub(1));
             if took.is_err() {
                 return matches;
@@ -110,16 +118,24 @@ fn read_searchable(path: &Path) -> Option<String> {
     Some(text.strip_prefix('\u{FEFF}').map(str::to_owned).unwrap_or(text))
 }
 
-/// 大文字小文字を区別せず、query をそのままの文字列として探す。保存済みの内容が対象。
+/// 行ごとに当てるので、^ と $ は行の頭と終わりに合わせる
+fn build_pattern(query: &str, options: SearchOptions) -> Result<Regex, String> {
+    let source = if options.use_regex { query.to_owned() } else { regex::escape(query) };
+    RegexBuilder::new(&source)
+        .case_insensitive(!options.match_case)
+        .multi_line(true)
+        .build()
+        .map_err(|_| "Invalid regular expression.".to_owned())
+}
+
+/// 保存済みの内容が対象。正規表現は Rust の regex の書き方で、1 行の中だけで一致を探す。
 /// ファイルは並行して読むので、結果はパスの順に並べ直す。
 #[tauri::command(async)]
-pub fn search_workspace(root: String, query: String) -> SearchResults {
+pub fn search_workspace(root: String, query: String, options: SearchOptions) -> Result<SearchResults, String> {
     if query.is_empty() {
-        return SearchResults::default();
+        return Ok(SearchResults::default());
     }
-    let Ok(pattern) = RegexBuilder::new(&regex::escape(&query)).case_insensitive(true).build() else {
-        return SearchResults::default();
-    };
+    let pattern = build_pattern(&query, options)?;
 
     let files = Mutex::new(Vec::new());
     let remaining = AtomicUsize::new(MAX_MATCHES);
@@ -149,10 +165,10 @@ pub fn search_workspace(root: String, query: String) -> SearchResults {
 
     let mut files = files.into_inner().unwrap();
     files.sort_by(|a, b| a.path.cmp(&b.path));
-    SearchResults {
+    Ok(SearchResults {
         files,
         is_truncated: remaining.load(Ordering::Relaxed) == 0,
-    }
+    })
 }
 
 #[cfg(test)]
@@ -168,11 +184,16 @@ mod tests {
     }
 
     fn search(root: &Path, query: &str) -> SearchResults {
-        search_workspace(root.to_string_lossy().into_owned(), query.to_owned())
+        search_workspace(root.to_string_lossy().into_owned(), query.to_owned(), SearchOptions::default()).unwrap()
     }
 
     fn pattern(query: &str) -> Regex {
-        RegexBuilder::new(&regex::escape(query)).case_insensitive(true).build().unwrap()
+        build_pattern(query, SearchOptions::default()).unwrap()
+    }
+
+    fn count(text: &str, query: &str, options: SearchOptions) -> usize {
+        let remaining = AtomicUsize::new(100);
+        search_text(text, &build_pattern(query, options).unwrap(), &remaining).len()
     }
 
     #[test]
@@ -201,6 +222,28 @@ mod tests {
         let remaining = AtomicUsize::new(10);
         assert!(search_text("abc", &pattern("a.c"), &remaining).is_empty());
         assert_eq!(search_text("a.c", &pattern("a.c"), &remaining).len(), 1);
+    }
+
+    #[test]
+    fn match_case_tells_upper_and_lower_apart() {
+        let options = SearchOptions { match_case: true, ..Default::default() };
+        assert_eq!(count("Foo foo FOO", "foo", options), 1);
+    }
+
+    #[test]
+    fn regex_matches_within_each_line() {
+        let options = SearchOptions { use_regex: true, ..Default::default() };
+        assert_eq!(count("fn a()\n  fn b()\nlet fn_c", r"^fn \w+", options), 1);
+        assert_eq!(count("abc a.c", "a.c", options), 2);
+        // 空の一致は数えない
+        assert_eq!(count("xyz", "a*", options), 0);
+    }
+
+    #[test]
+    fn invalid_regex_is_an_error() {
+        let options = SearchOptions { use_regex: true, ..Default::default() };
+        assert!(build_pattern("(", options).is_err());
+        assert!(build_pattern("(", SearchOptions::default()).is_ok());
     }
 
     #[test]

@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { SearchResults } from "./type";
+import type { SearchOptions, SearchResults } from "./type";
 
-export function searchWorkspace(root: string, query: string): Promise<SearchResults> {
-  return invoke("search_workspace", { root, query });
+/** 正規表現が読めないと、その説明の文字列で失敗する */
+export function searchWorkspace(root: string, query: string, options: SearchOptions): Promise<SearchResults> {
+  return invoke("search_workspace", { root, query, options });
 }

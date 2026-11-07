@@ -1,3 +1,9 @@
+export type SearchOptions = {
+  matchCase: boolean;
+  /** Rust の regex の書き方。1 行の中だけで一致を探す */
+  useRegex: boolean;
+};
+
 export type SearchMatch = {
   /** 1 始まり */
   line: number;
