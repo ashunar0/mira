@@ -2,7 +2,7 @@ import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { ancestorsWithin, baseName, parentPath } from "../../../features/files/lib/path";
 import { useDirectoryQuery, useRefreshDirectories } from "../../../features/files/queries";
 import { ActivityBar } from "./activityBar";
-import { FileIcon } from "./fileIcon";
+import { FileIcon, FolderIcon } from "./fileIcon";
 
 type Props = {
   rootPath: string | null;
@@ -231,7 +231,11 @@ function TreeLevel(props: TreeLevelProps) {
           ) : (
             <span className="wb-twistie" />
           )}
-          {!entry.isDirectory && <FileIcon name={entry.name} />}
+          {entry.isDirectory ? (
+            <FolderIcon name={entry.name} isOpen={isOpen} />
+          ) : (
+            <FileIcon name={entry.name} />
+          )}
           <span className="wb-tree-label">{entry.name}</span>
         </div>
         {isOpen && <TreeLevel {...props} path={entry.path} depth={depth + 1} />}

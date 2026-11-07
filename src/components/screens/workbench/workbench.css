@@ -1,8 +1,3 @@
-@font-face {
-  font-family: "seti";
-  src: url("../../../assets/seti/seti.woff") format("woff");
-}
-
 /* 色は VS Code の Dark Modern、寸法は VS Code の各 Part の定数に合わせる */
 :root {
   color-scheme: dark;
@@ -288,12 +283,9 @@ button {
 
 .wb-file-icon {
   flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 16px;
+  height: 16px;
   margin-right: 6px;
-  font: 19.5px / 1 "seti";
 }
 
 /* Sash */

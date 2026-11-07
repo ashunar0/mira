@@ -8,6 +8,11 @@ const host = process.env.TAURI_DEV_HOST;
 export default defineConfig(() => ({
   plugins: [react()],
 
+  // 1,000 個以上のアイコンを JS に埋め込まず、個別のファイルとして出力する
+  build: {
+    assetsInlineLimit: (file: string) => (file.endsWith(".svg") ? false : undefined),
+  },
+
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

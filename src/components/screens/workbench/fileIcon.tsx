@@ -1,50 +1,65 @@
-import seti from "../../../assets/seti/vs-seti-icon-theme.json";
+import theme from "material-icon-theme/dist/material-icons.json";
 import { monaco } from "../../../infrastructure/monaco/setup";
 
-type IconDefinition = { fontCharacter: string; fontColor?: string };
+const iconUrls = import.meta.glob<string>("/node_modules/material-icon-theme/icons/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
 
-// Monaco は .tsx を typescript に含めるが、Seti は React 用の別アイコンを持つ
-const LANGUAGE_BY_EXTENSION: Record<string, string> = {
-  ".tsx": "typescriptreact",
-  ".jsx": "javascriptreact",
-};
+const definitions: Record<string, { iconPath: string }> = theme.iconDefinitions;
 
-const iconDefinitions: Record<string, IconDefinition> = seti.iconDefinitions;
-const fileNames: Record<string, string> = seti.fileNames;
-const fileExtensions: Record<string, string> = seti.fileExtensions;
-const languageIds: Record<string, string> = seti.languageIds;
+/** VS Code と同じく、名前は大文字小文字を区別せずに照合する */
+function lowerCaseKeys(map: Record<string, string>): Map<string, string> {
+  return new Map(Object.entries(map).map(([key, value]) => [key.toLowerCase(), value]));
+}
+
+const fileNames = lowerCaseKeys(theme.fileNames);
+const fileExtensions = lowerCaseKeys(theme.fileExtensions);
+const folderNames = lowerCaseKeys(theme.folderNames);
+const folderNamesExpanded = lowerCaseKeys(theme.folderNamesExpanded);
+const languageIds: Record<string, string> = theme.languageIds;
 
 function languageIdOf(name: string): string | undefined {
-  const extension = name.includes(".") ? name.slice(name.lastIndexOf(".")) : "";
-  if (LANGUAGE_BY_EXTENSION[extension]) return LANGUAGE_BY_EXTENSION[extension];
   return monaco.languages
     .getLanguages()
     .find(
       (language) =>
         language.filenames?.some((filename) => filename.toLowerCase() === name) ||
-        language.extensions?.some((ext) => name.endsWith(ext.toLowerCase())),
+        language.extensions?.some((extension) => name.endsWith(extension.toLowerCase())),
     )?.id;
 }
 
 /** VS Code と同じ優先順: ファイル名 → 拡張子（長い方から）→ 言語 → 既定 */
-function resolveIconId(fileName: string): string {
+function resolveFileIcon(fileName: string): string {
   const name = fileName.toLowerCase();
-  if (fileNames[name]) return fileNames[name];
+  const byName = fileNames.get(name);
+  if (byName) return byName;
   for (let dot = name.indexOf("."); dot !== -1; dot = name.indexOf(".", dot + 1)) {
-    const extension = fileExtensions[name.slice(dot + 1)];
-    if (extension) return extension;
+    const byExtension = fileExtensions.get(name.slice(dot + 1));
+    if (byExtension) return byExtension;
   }
   const language = languageIdOf(name);
-  if (language && languageIds[language]) return languageIds[language];
-  return seti.file;
+  return (language && languageIds[language]) || theme.file;
+}
+
+function resolveFolderIcon(folderName: string, isOpen: boolean): string {
+  const name = folderName.toLowerCase();
+  return isOpen
+    ? (folderNamesExpanded.get(name) ?? theme.folderExpanded)
+    : (folderNames.get(name) ?? theme.folder);
+}
+
+function ThemeIcon({ iconId }: { iconId: string }) {
+  const fileName = definitions[iconId].iconPath.split("/").pop();
+  const src = iconUrls[`/node_modules/material-icon-theme/icons/${fileName}`];
+  return <img className="wb-file-icon" src={src} alt="" width={16} height={16} draggable={false} />;
 }
 
 export function FileIcon({ name }: { name: string }) {
-  const { fontCharacter, fontColor } = iconDefinitions[resolveIconId(name)];
-  const glyph = String.fromCodePoint(Number.parseInt(fontCharacter.slice(1), 16));
-  return (
-    <span className="wb-file-icon" style={{ color: fontColor }} aria-hidden>
-      {glyph}
-    </span>
-  );
+  return <ThemeIcon iconId={resolveFileIcon(name)} />;
+}
+
+export function FolderIcon({ name, isOpen }: { name: string; isOpen: boolean }) {
+  return <ThemeIcon iconId={resolveFolderIcon(name, isOpen)} />;
 }
