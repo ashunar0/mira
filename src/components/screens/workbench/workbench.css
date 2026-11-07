@@ -115,7 +115,7 @@ button {
   flex: none;
   display: flex;
   height: 35px;
-  padding: 0 4px;
+  padding: 0 12px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -163,7 +163,7 @@ button {
 .wb-sidebar-title {
   flex: none;
   height: 35px;
-  padding-left: 20px;
+  padding-left: 12px; /* 下の行の矢印と、見た目の左端を揃える */
   line-height: 35px;
   font-size: 11px;
   text-transform: uppercase;
@@ -202,7 +202,7 @@ button {
   display: flex;
   align-items: center;
   height: 22px;
-  padding-right: 8px;
+  padding: 0 8px;
 }
 
 .wb-section-toggle {
@@ -215,6 +215,10 @@ button {
   font-weight: 700;
   text-align: left;
   text-transform: uppercase;
+}
+
+.wb-section-toggle .codicon {
+  margin: 0 2px;
 }
 
 .wb-section-toggle span {
@@ -237,6 +241,7 @@ button {
   min-height: 0;
   overflow: auto;
   outline: none;
+  padding: 0 8px 22px; /* 左右は端から離し、下は最後の行の下に 1 行分あける */
 }
 
 .wb-tree-row {
@@ -265,13 +270,14 @@ button {
   flex: none;
   display: inline-block;
   width: 16px;
+  margin-right: 6px;
   font-size: 16px;
+  transform: translateX(3px);
 }
 
 .wb-tree-label {
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-left: 2px;
 }
 
 .wb-tree-message {
@@ -286,7 +292,7 @@ button {
   align-items: center;
   justify-content: center;
   width: 16px;
-  margin-right: 4px;
+  margin-right: 6px;
   font: 19.5px / 1 "seti";
 }
 
