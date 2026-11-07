@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { baseName } from "../../../features/files/lib/path";
 import { closeWindow, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
+import type { monaco } from "../../../infrastructure/monaco/setup";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
 import { Breadcrumbs } from "./breadcrumbs";
 import { EditorPane } from "./editorPane";
 import { Explorer } from "./explorer";
+import { COMMAND_PREFIX, type Command, QuickOpen } from "./quickOpen";
 import { Sash } from "./sash";
 import { type EditorStatus, StatusBar } from "./statusBar";
 import { useStoredPreference } from "./storedPreference";
@@ -24,6 +26,8 @@ export function Workbench() {
   const [sidebarWidth, setSidebarWidth] = useStoredPreference("mira.sidebarWidth", SIDEBAR_DEFAULT_WIDTH);
   const [isSidebarVisible, setIsSidebarVisible] = useStoredPreference("mira.sidebarVisible", true);
   const [editorStatus, setEditorStatus] = useState<EditorStatus | null>(null);
+  const [quickOpenText, setQuickOpenText] = useState<string | null>(null);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const editorTabs = useEditorTabs();
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest } = editorTabs;
 
@@ -46,6 +50,34 @@ export function Workbench() {
     setSidebarWidth(Math.round(Math.min(Math.max(clientX, SIDEBAR_MIN_WIDTH), max)));
   };
 
+  const getCommands = (): Command[] => {
+    const appCommands: Command[] = [
+      { id: "open-folder", label: "File: Open Folder...", keybinding: ["⌘", "O"], run: () => void openFolder() },
+      { id: "save", label: "File: Save", keybinding: ["⌘", "S"], run: editorTabs.saveActive },
+      { id: "close-tab", label: "View: Close Editor", keybinding: ["⌘", "W"], run: closeActiveOrWindow },
+      { id: "toggle-sidebar", label: "View: Toggle Primary Side Bar Visibility", keybinding: ["⌘", "B"], run: toggleSidebar },
+      { id: "quick-open", label: "Go to File...", keybinding: ["⌘", "P"], run: () => setQuickOpenText("") },
+    ];
+    // Monaco の編集コマンドも並べる。パレットは自前なので Monaco 自身のパレットは除く
+    const editor = editorRef.current;
+    const editorCommands: Command[] = editor?.getModel()
+      ? editor
+          .getSupportedActions()
+          .filter((action) => action.id !== "editor.action.quickCommand" && action.label)
+          .map((action) => ({
+            id: action.id,
+            label: action.label,
+            run: () => {
+              editor.focus();
+              void action.run();
+            },
+          }))
+      : [];
+    return [...appCommands, ...editorCommands];
+  };
+
+  const showCommands = () => setQuickOpenText(COMMAND_PREFIX);
+
   // ネイティブメニューは一度だけ購読し、常に最新の描画のハンドラを呼ぶ
   const menuHandlers = useRef<Record<string, () => void>>({});
   menuHandlers.current = {
@@ -53,9 +85,23 @@ export function Workbench() {
     save: editorTabs.saveActive,
     "close-tab": closeActiveOrWindow,
     "toggle-sidebar": toggleSidebar,
+    "quick-open": () => setQuickOpenText(""),
+    "command-palette": showCommands,
     quit: () => void closeWindow(),
   };
   useEffect(() => onNativeMenu((id) => menuHandlers.current[id]?.()), []);
+
+  // F1 は Monaco 自身のパレットより先に受け取る（ネイティブメニューには同じ機能を 2 つのキーで置けない）
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "F1") return;
+      event.preventDefault();
+      event.stopPropagation();
+      setQuickOpenText(COMMAND_PREFIX);
+    };
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, []);
 
   const { confirmDiscardAll } = editorTabs;
   useEffect(() => onWindowCloseRequested(confirmDiscardAll), [confirmDiscardAll]);
@@ -99,6 +145,7 @@ export function Workbench() {
             <EditorPane
               model={activeModel}
               focusRequest={focusRequest}
+              editorRef={editorRef}
               onStatusChange={setEditorStatus}
             />
             {!activeTab && <Watermark />}
@@ -113,6 +160,17 @@ export function Workbench() {
           />
         )}
       </div>
+      {quickOpenText !== null && (
+        <QuickOpen
+          text={quickOpenText}
+          rootPath={rootPath}
+          recentPaths={editorTabs.getHistory()}
+          getCommands={getCommands}
+          onTextChange={setQuickOpenText}
+          onOpenFile={(path) => void editorTabs.openFile(path, { pin: true })}
+          onClose={() => setQuickOpenText(null)}
+        />
+      )}
       <StatusBar hasFolder={rootPath !== null} status={editorStatus} hasBom={activeHasBom} />
     </div>
   );

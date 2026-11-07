@@ -1,11 +1,25 @@
 use std::{fs, io, path::Path, time::UNIX_EPOCH};
 
+use ignore::WalkBuilder;
 use serde::Serialize;
 
 /// VS Code と同じく、巨大ファイルでエディタごと固まらないよう上限を設ける。
 const MAX_TEXT_FILE_BYTES: u64 = 50 * 1024 * 1024;
 const BINARY_SNIFF_BYTES: usize = 8 * 1024;
 const UTF8_BOM: &[u8] = &[0xEF, 0xBB, 0xBF];
+/// 巨大なリポジトリでもパレットが固まらないよう、列挙するファイル数に上限を設ける。
+const MAX_WORKSPACE_FILES: usize = 100_000;
+/// VS Code の files.exclude と search.exclude の既定値
+const EXCLUDED_NAMES: &[&str] = &[
+    ".git",
+    ".svn",
+    ".hg",
+    ".jj",
+    ".DS_Store",
+    "Thumbs.db",
+    "node_modules",
+    "bower_components",
+];
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -80,6 +94,27 @@ pub fn read_directory(path: String) -> Result<Vec<DirEntry>, FileError> {
         });
     }
     Ok(entries)
+}
+
+/// Quick Open 用の一覧。VS Code と同じく隠しファイルは含め、.gitignore に従う。
+#[tauri::command(async)]
+pub fn list_workspace_files(root: String) -> Result<Vec<String>, FileError> {
+    fs::metadata(&root)?;
+    let mut paths: Vec<String> = WalkBuilder::new(&root)
+        .hidden(false)
+        .filter_entry(|entry| {
+            !EXCLUDED_NAMES
+                .iter()
+                .any(|name| entry.file_name() == std::ffi::OsStr::new(name))
+        })
+        .build()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_some_and(|kind| kind.is_file()))
+        .take(MAX_WORKSPACE_FILES)
+        .map(|entry| entry.path().to_string_lossy().into_owned())
+        .collect();
+    paths.sort_unstable();
+    Ok(paths)
 }
 
 #[tauri::command(async)]
@@ -212,6 +247,32 @@ mod tests {
         fs::remove_file(&path).unwrap();
         write_text_file(path.clone(), "back".into(), false, Some(mtime)).unwrap();
         assert_eq!(fs::read(&path).unwrap(), b"back");
+    }
+
+    #[test]
+    fn workspace_listing_follows_gitignore_and_keeps_hidden_files() {
+        let root = std::env::temp_dir().join(format!("mira-walk-{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        for dir in [".git", "src", "node_modules/pkg", "dist"] {
+            fs::create_dir_all(root.join(dir)).unwrap();
+        }
+        for file in [
+            ".gitignore",
+            ".env.example",
+            "src/a.ts",
+            "dist/out.js",
+            "node_modules/pkg/index.js",
+            ".git/config",
+        ] {
+            fs::write(root.join(file), "dist\n").unwrap();
+        }
+
+        let listed = list_workspace_files(root.to_string_lossy().into_owned()).unwrap();
+        let relative: Vec<_> = listed
+            .iter()
+            .map(|path| path.strip_prefix(&format!("{}/", root.display())).unwrap())
+            .collect();
+        assert_eq!(relative, [".env.example", ".gitignore", "src/a.ts"]);
     }
 
     #[test]

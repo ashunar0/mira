@@ -1,10 +1,11 @@
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 import { EDITOR_OPTIONS, monaco } from "../../../infrastructure/monaco/setup";
 import type { EditorStatus } from "./statusBar";
 
 type Props = {
   model: monaco.editor.ITextModel | null;
   focusRequest: number;
+  editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>;
   onStatusChange: (status: EditorStatus | null) => void;
 };
 
@@ -30,9 +31,8 @@ function readStatus(editor: monaco.editor.IStandaloneCodeEditor): EditorStatus |
   };
 }
 
-export function EditorPane({ model, focusRequest, onStatusChange }: Props) {
+export function EditorPane({ model, focusRequest, editorRef, onStatusChange }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   // タブを行き来してもカーソルとスクロール位置を保つ。モデルが捨てられたら一緒に消える
   const viewStates = useRef(new WeakMap<monaco.editor.ITextModel, monaco.editor.ICodeEditorViewState>());
 
@@ -52,7 +52,7 @@ export function EditorPane({ model, focusRequest, onStatusChange }: Props) {
       editor.dispose();
       editorRef.current = null;
     };
-  }, [onStatusChange]);
+  }, [editorRef, onStatusChange]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -64,11 +64,11 @@ export function EditorPane({ model, focusRequest, onStatusChange }: Props) {
     const nextState = model && viewStates.current.get(model);
     if (nextState) editor.restoreViewState(nextState);
     if (!model) onStatusChange(null);
-  }, [model, onStatusChange]);
+  }, [editorRef, model, onStatusChange]);
 
   useEffect(() => {
     if (focusRequest > 0) editorRef.current?.focus();
-  }, [focusRequest]);
+  }, [editorRef, focusRequest]);
 
   return <div ref={containerRef} className="wb-editor" hidden={!model} />;
 }

@@ -26,6 +26,8 @@ export function useEditorTabs() {
   const buffers = useRef(new Map<string, Buffer>());
   const saveChains = useRef(new Map<string, Promise<boolean>>());
   const latestOpen = useRef(0);
+  /** 開いた順の履歴（新しい順）。閉じたファイルも残し、Quick Open の先頭に出す */
+  const history = useRef<string[]>([]);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -74,6 +76,7 @@ export function useEditorTabs() {
           error = describeFileError(cause);
         }
       }
+      history.current = [path, ...history.current.filter((p) => p !== path)];
       dispatch({ type: "open", path, name: baseName(path), pin, error });
       // シングルクリックのプレビューはフォーカスを Explorer に残す
       if (pin) requestFocus();
@@ -177,7 +180,11 @@ export function useEditorTabs() {
     [requestFocus],
   );
   const pin = useCallback((path: string) => dispatch({ type: "pin", path }), []);
-  const closeAll = useCallback(() => dispatch({ type: "closeAll" }), []);
+  const closeAll = useCallback(() => {
+    history.current = [];
+    dispatch({ type: "closeAll" });
+  }, []);
+  const getHistory = useCallback(() => history.current, []);
 
   const activeTab = state.tabs.find((tab) => tab.path === state.activePath) ?? null;
 
@@ -192,6 +199,7 @@ export function useEditorTabs() {
     pin,
     closeTab,
     closeAll,
+    getHistory,
     saveActive,
     confirmDiscardAll,
   };

@@ -11,6 +11,7 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             files::read_directory,
+            files::list_workspace_files,
             files::read_text_file,
             files::write_text_file,
         ])

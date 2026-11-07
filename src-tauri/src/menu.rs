@@ -39,10 +39,19 @@ pub fn install(app: &App) -> tauri::Result<()> {
         .build()?;
     let view_menu = SubmenuBuilder::new(app, "View")
         .item(&item(
+            "command-palette",
+            "Command Palette...",
+            "CmdOrCtrl+Shift+P",
+        )?)
+        .separator()
+        .item(&item(
             "toggle-sidebar",
             "Toggle Primary Side Bar",
             "CmdOrCtrl+B",
         )?)
+        .build()?;
+    let go_menu = SubmenuBuilder::new(app, "Go")
+        .item(&item("quick-open", "Go to File...", "CmdOrCtrl+P")?)
         .build()?;
     let window_menu = SubmenuBuilder::new(app, "Window")
         .minimize()
@@ -52,7 +61,14 @@ pub fn install(app: &App) -> tauri::Result<()> {
         .build()?;
 
     let menu = MenuBuilder::new(app)
-        .items(&[&app_menu, &file_menu, &edit_menu, &view_menu, &window_menu])
+        .items(&[
+            &app_menu,
+            &file_menu,
+            &edit_menu,
+            &view_menu,
+            &go_menu,
+            &window_menu,
+        ])
         .build()?;
     app.set_menu(menu)?;
 

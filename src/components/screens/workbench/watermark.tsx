@@ -1,4 +1,6 @@
 const SHORTCUTS = [
+  ["Show All Commands", "⇧", "⌘", "P"],
+  ["Go to File", "⌘", "P"],
   ["Open Folder", "⌘", "O"],
   ["Save", "⌘", "S"],
   ["Close Editor", "⌘", "W"],

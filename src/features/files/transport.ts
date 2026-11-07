@@ -5,6 +5,10 @@ export function readDirectory(path: string): Promise<DirEntry[]> {
   return invoke("read_directory", { path });
 }
 
+export function listWorkspaceFiles(root: string): Promise<string[]> {
+  return invoke("list_workspace_files", { root });
+}
+
 export function readTextFile(path: string): Promise<FileContent> {
   return invoke("read_text_file", { path });
 }
