@@ -6,7 +6,6 @@ import JsonWorker from "monaco-editor/languages/features/json/json.worker.js?wor
 import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
 import { installHoverCopyFeedback } from "./hoverCopyFeedback";
 import { deepMerge, type ObjectTree, withResets } from "../objectTree";
-import { THEME_NAME } from "./theme";
 
 self.MonacoEnvironment = {
   getWorker(_workerId, label) {
@@ -48,7 +47,8 @@ const DEFAULT_OPTIONS: ObjectTree = {
   stickyScroll: { enabled: true },
   // カーソルのある行は、行番号の色で分かる
   renderLineHighlight: "none",
-  // VS Code と同じく、言語サーバーの「意味に基づく色分け」を TextMate 文法の色に重ねる（Kanagawa Dragon が有効にしている）
+  // 言語サーバーの「意味に基づく色分け」を TextMate 文法の色に重ねる。VS Code と同じく、するかはテーマが決める
+  // （semanticTokenStyles。Monaco 単体はテーマから読めないので、ここでは常に有効にしておく）
   "semanticHighlighting.enabled": true,
 };
 
@@ -81,17 +81,13 @@ export function diffEditorOptions(userOptions: ObjectTree): monaco.editor.IDiffE
   return deepMerge(deepMerge(DEFAULT_OPTIONS, userOptions), DIFF_ONLY_OPTIONS);
 }
 
-/** 作るときだけ渡す。テーマは全体で 1 つなので、設定を変えるたびには渡さない */
+/** 作るときに渡す。テーマは全体で 1 つなので渡さない（applyColorTheme が替える） */
 export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
   ...editorOptions({}),
-  theme: THEME_NAME,
   model: null,
 };
 
-export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructionOptions = {
-  ...diffEditorOptions({}),
-  theme: THEME_NAME,
-};
+export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructionOptions = diffEditorOptions({});
 
 /**
  * 設定を差し替える。updateOptions は渡した値しか変えないので、前に渡して今はない値は既定に戻す。

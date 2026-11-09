@@ -2,7 +2,7 @@ import { parse, type ParseError } from "jsonc-parser";
 import { deepMerge, isPlainObject, type ObjectTree } from "../../../infrastructure/objectTree";
 import type { Settings } from "../type";
 
-/** "[markdown]" や "[markdown][yaml]" のような、言語ごとの上書き */
+/** "[markdown]" や "[markdown][yaml]" のような、言語ごとの上書き。colorCustomizations のテーマごとの上書きも同じ形 */
 const LANGUAGE_OVERRIDE = /^(\[[^\]]+\])+$/;
 
 /**
@@ -53,4 +53,38 @@ export function editorSettingsFor(settings: Settings, languageId: string | null)
   return settings.languageOverrides
     .filter((override) => languageId !== null && override.languages.includes(languageId))
     .reduce((merged, override) => deepMerge(merged, section(override.values)), section(settings.values));
+}
+
+/** workbench.colorTheme。書いていなければ null（mira に入れてあるテーマを使う） */
+export function colorThemeOf(settings: Settings): string | null {
+  const workbench = settings.values.workbench;
+  return isPlainObject(workbench) && typeof workbench.colorTheme === "string" ? workbench.colorTheme : null;
+}
+
+/** "[Kanagawa*]" のような、テーマの名前の * を含むものも合わせる（VS Code の themeSpecific と同じ） */
+function matchesTheme(scope: string, themeId: string): boolean {
+  const pattern = new RegExp(`^${scope.replace(/[.+?^${}()|\\]/g, "\\$&").replace(/\*/g, ".*")}$`);
+  return pattern.test(themeId);
+}
+
+/**
+ * workbench.colorCustomizations のうち、このテーマで効く色。VS Code と同じく、テーマを問わないものに
+ * "[テーマの名前]" の中のものを重ねる。"[A][B]" のように並べれば、どちらのテーマでも効く
+ */
+export function colorCustomizationsFor(settings: Settings, themeId: string | null): Record<string, string> {
+  const workbench = settings.values.workbench;
+  const customizations = isPlainObject(workbench) ? workbench.colorCustomizations : undefined;
+  if (!isPlainObject(customizations)) return {};
+  const colors: Record<string, string> = {};
+  const themeSpecific: Record<string, string> = {};
+  for (const [key, value] of Object.entries(customizations)) {
+    if (typeof value === "string") {
+      colors[key] = value;
+    } else if (themeId !== null && isPlainObject(value) && LANGUAGE_OVERRIDE.test(key)) {
+      const scopes = key.slice(1, -1).split("][");
+      if (!scopes.some((scope) => matchesTheme(scope, themeId))) continue;
+      for (const [id, color] of Object.entries(value)) if (typeof color === "string") themeSpecific[id] = color;
+    }
+  }
+  return { ...colors, ...themeSpecific };
 }

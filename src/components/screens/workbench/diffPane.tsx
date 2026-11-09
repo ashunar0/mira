@@ -12,8 +12,9 @@ import {
 import { readStatus } from "./editorPane";
 import type { EditorStatus } from "./statusBar";
 
-const ADDED_MARK_COLOR = "#2EA043B3";
-const REMOVED_MARK_COLOR = "#F85149B3";
+// VS Code の diff エディタの、スクロールバーの印と同じ色（テーマで変わる）
+const ADDED_MARK_COLOR = { id: "diffEditorOverview.insertedForeground" };
+const REMOVED_MARK_COLOR = { id: "diffEditorOverview.removedForeground" };
 
 type Props = {
   /** 右側に出す、タブと共有のモデル。ここで編集すればタブの内容も変わる */

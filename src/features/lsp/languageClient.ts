@@ -1,5 +1,5 @@
 import { monaco } from "../../infrastructure/monaco/setup";
-import { SEMANTIC_TOKEN_LEGEND, semanticStyleIndex } from "../../infrastructure/monaco/semanticTokenStyles";
+import { semanticStyleIndex, semanticTokenLegend } from "../../infrastructure/monaco/semanticTokenStyles";
 import { LanguageServerConnection } from "./connection";
 import { listenLanguageServer, sendToLanguageServer, startLanguageServer, stopLanguageServer } from "./transport";
 
@@ -116,7 +116,7 @@ const SEMANTIC_TOKEN_MODIFIERS = [
 type SemanticTokensLegend = { tokenTypes: string[]; tokenModifiers: string[] };
 
 /**
- * サーバーの「種類と修飾」を、Mira が決めた色（SEMANTIC_TOKEN_LEGEND）に置き換える。
+ * サーバーの「種類と修飾」を、Mira が決めた色（semanticTokenLegend）に置き換える。
  * 色を変えないものは外すので、位置は相対で数え直す
  */
 function toStyledTokens(data: number[], legend: SemanticTokensLegend, languageId: string): Uint32Array {
@@ -348,7 +348,7 @@ export function startLanguageClient(
       }),
       monaco.languages.registerDocumentSemanticTokensProvider(config.monacoLanguages, {
         onDidChange: semanticTokensChanged.event,
-        getLegend: () => ({ tokenTypes: SEMANTIC_TOKEN_LEGEND, tokenModifiers: [] }),
+        getLegend: () => ({ tokenTypes: semanticTokenLegend(), tokenModifiers: [] }),
         provideDocumentSemanticTokens: async (model) => {
           const legend = capabilities.semanticTokensProvider?.legend;
           const languageId = languageIdOf(model.uri);

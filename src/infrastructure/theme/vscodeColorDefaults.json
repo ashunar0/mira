@@ -1,0 +1,3673 @@
+{
+ "activityBar.activeBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "activityBar.activeBorder": {
+  "dark": "activityBar.foreground",
+  "light": "activityBar.foreground",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "activityBar.activeFocusBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": "#B5200D"
+ },
+ "activityBar.background": {
+  "dark": "#333333",
+  "light": "#2C2C2C",
+  "hcDark": "#000000",
+  "hcLight": "#FFFFFF"
+ },
+ "activityBar.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "activityBar.dropBorder": {
+  "dark": "activityBar.foreground",
+  "light": "activityBar.foreground",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "activityBar.foreground": {
+  "dark": "#ffffff",
+  "light": "#ffffff",
+  "hcDark": "#ffffff",
+  "hcLight": "editor.foreground"
+ },
+ "activityBar.inactiveForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "activityBar.foreground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "activityBar.foreground",
+   "factor": 0.4
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "editor.foreground"
+ },
+ "activityBarBadge.background": {
+  "dark": "#007ACC",
+  "light": "#007ACC",
+  "hcDark": "#000000",
+  "hcLight": "#0F4A85"
+ },
+ "activityBarBadge.foreground": {
+  "dark": "#ffffff",
+  "light": "#ffffff",
+  "hcDark": "#ffffff",
+  "hcLight": "#ffffff"
+ },
+ "activityBarTop.activeBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "activityBarTop.activeBorder": {
+  "dark": "activityBarTop.foreground",
+  "light": "activityBarTop.foreground",
+  "hcDark": "contrastBorder",
+  "hcLight": "#B5200D"
+ },
+ "activityBarTop.background": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "activityBarTop.dropBorder": {
+  "dark": "activityBarTop.foreground",
+  "light": "activityBarTop.foreground",
+  "hcDark": "activityBarTop.foreground",
+  "hcLight": "activityBarTop.foreground"
+ },
+ "activityBarTop.foreground": {
+  "dark": "#E7E7E7",
+  "light": "#424242",
+  "hcDark": "#ffffff",
+  "hcLight": "editor.foreground"
+ },
+ "activityBarTop.inactiveForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "activityBarTop.foreground",
+   "factor": 0.6
+  },
+  "light": {
+   "op": "transparent",
+   "value": "activityBarTop.foreground",
+   "factor": 0.75
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "editor.foreground"
+ },
+ "activityErrorBadge.background": {
+  "dark": "#F14C4C",
+  "light": "#E51400",
+  "hcDark": null,
+  "hcLight": "#F14C4C"
+ },
+ "activityErrorBadge.foreground": {
+  "dark": {
+   "op": "lighten",
+   "value": "#000000",
+   "factor": 0.2
+  },
+  "light": "#ffffff",
+  "hcDark": null,
+  "hcLight": {
+   "op": "lighten",
+   "value": "#000000",
+   "factor": 0.2
+  }
+ },
+ "activityWarningBadge.background": {
+  "dark": "#B27C00",
+  "light": "#B27C00",
+  "hcDark": null,
+  "hcLight": "#B27C00"
+ },
+ "activityWarningBadge.foreground": {
+  "dark": "#ffffff",
+  "light": "#ffffff",
+  "hcDark": "#ffffff",
+  "hcLight": "#ffffff"
+ },
+ "badge.background": {
+  "dark": "#4D4D4D",
+  "light": "#C4C4C4",
+  "hcDark": "#000000",
+  "hcLight": "#0F4A85"
+ },
+ "badge.foreground": {
+  "dark": "#ffffff",
+  "light": "#333",
+  "hcDark": "#ffffff",
+  "hcLight": "#ffffff"
+ },
+ "banner.background": {
+  "dark": "list.activeSelectionBackground",
+  "light": {
+   "op": "darken",
+   "value": "list.activeSelectionBackground",
+   "factor": 0.3
+  },
+  "hcDark": "list.activeSelectionBackground",
+  "hcLight": "list.activeSelectionBackground"
+ },
+ "banner.foreground": {
+  "dark": "list.activeSelectionForeground",
+  "light": "list.activeSelectionForeground",
+  "hcDark": "list.activeSelectionForeground",
+  "hcLight": "list.activeSelectionForeground"
+ },
+ "banner.iconForeground": {
+  "dark": "editorInfo.foreground",
+  "light": "editorInfo.foreground",
+  "hcDark": "editorInfo.foreground",
+  "hcLight": "editorInfo.foreground"
+ },
+ "breadcrumb.activeSelectionForeground": {
+  "dark": {
+   "op": "lighten",
+   "value": "foreground",
+   "factor": 0.1
+  },
+  "light": {
+   "op": "darken",
+   "value": "foreground",
+   "factor": 0.2
+  },
+  "hcDark": {
+   "op": "lighten",
+   "value": "foreground",
+   "factor": 0.1
+  },
+  "hcLight": {
+   "op": "lighten",
+   "value": "foreground",
+   "factor": 0.1
+  }
+ },
+ "breadcrumb.background": {
+  "dark": "editor.background",
+  "light": "editor.background",
+  "hcDark": "editor.background",
+  "hcLight": "editor.background"
+ },
+ "breadcrumb.focusForeground": {
+  "dark": {
+   "op": "lighten",
+   "value": "foreground",
+   "factor": 0.1
+  },
+  "light": {
+   "op": "darken",
+   "value": "foreground",
+   "factor": 0.2
+  },
+  "hcDark": {
+   "op": "lighten",
+   "value": "foreground",
+   "factor": 0.1
+  },
+  "hcLight": {
+   "op": "lighten",
+   "value": "foreground",
+   "factor": 0.1
+  }
+ },
+ "breadcrumb.foreground": {
+  "dark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.8
+  },
+  "light": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.8
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.8
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.8
+  }
+ },
+ "breadcrumbPicker.background": {
+  "dark": "editorWidget.background",
+  "light": "editorWidget.background",
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "browser.border": {
+  "dark": "tab.border",
+  "light": "tab.border",
+  "hcDark": "tab.border",
+  "hcLight": "tab.border"
+ },
+ "button.background": {
+  "dark": "#0E639C",
+  "light": "#007ACC",
+  "hcDark": "#000000",
+  "hcLight": "#0F4A85"
+ },
+ "button.border": {
+  "dark": "contrastBorder",
+  "light": "contrastBorder",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "button.foreground": {
+  "dark": "#ffffff",
+  "light": "#ffffff",
+  "hcDark": "#ffffff",
+  "hcLight": "#ffffff"
+ },
+ "button.hoverBackground": {
+  "dark": {
+   "op": "lighten",
+   "value": "button.background",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "darken",
+   "value": "button.background",
+   "factor": 0.2
+  },
+  "hcDark": "button.background",
+  "hcLight": "button.background"
+ },
+ "button.secondaryBackground": {
+  "dark": "list.hoverBackground",
+  "light": "list.hoverBackground",
+  "hcDark": null,
+  "hcLight": "#ffffff"
+ },
+ "button.secondaryBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.15
+  },
+  "light": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.15
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "button.secondaryForeground": {
+  "dark": "foreground",
+  "light": "foreground",
+  "hcDark": "#ffffff",
+  "hcLight": "foreground"
+ },
+ "button.secondaryHoverBackground": {
+  "dark": {
+   "op": "lighten",
+   "value": "list.hoverBackground",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "lighten",
+   "value": "list.hoverBackground",
+   "factor": 0.2
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "button.separator": {
+  "dark": {
+   "op": "transparent",
+   "value": "button.foreground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "button.foreground",
+   "factor": 0.4
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "chart.axis": {
+  "dark": {
+   "op": "transparent",
+   "value": "#BFBFBF",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.6
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "chart.guide": {
+  "dark": {
+   "op": "transparent",
+   "value": "#BFBFBF",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.2
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "chart.line": {
+  "dark": "#236B8E",
+  "light": "#236B8E",
+  "hcDark": "#236B8E",
+  "hcLight": "#236B8E"
+ },
+ "checkbox.background": {
+  "dark": "dropdown.background",
+  "light": "dropdown.background",
+  "hcDark": "dropdown.background",
+  "hcLight": "dropdown.background"
+ },
+ "checkbox.border": {
+  "dark": "dropdown.border",
+  "light": "dropdown.border",
+  "hcDark": "dropdown.border",
+  "hcLight": "dropdown.border"
+ },
+ "checkbox.disabled.background": {
+  "dark": {
+   "op": "mix",
+   "color": "checkbox.background",
+   "with": "checkbox.foreground",
+   "ratio": 0.33
+  },
+  "light": {
+   "op": "mix",
+   "color": "checkbox.background",
+   "with": "checkbox.foreground",
+   "ratio": 0.33
+  },
+  "hcDark": {
+   "op": "mix",
+   "color": "checkbox.background",
+   "with": "checkbox.foreground",
+   "ratio": 0.33
+  },
+  "hcLight": {
+   "op": "mix",
+   "color": "checkbox.background",
+   "with": "checkbox.foreground",
+   "ratio": 0.33
+  }
+ },
+ "checkbox.disabled.foreground": {
+  "dark": {
+   "op": "mix",
+   "color": "checkbox.foreground",
+   "with": "checkbox.background",
+   "ratio": 0.33
+  },
+  "light": {
+   "op": "mix",
+   "color": "checkbox.foreground",
+   "with": "checkbox.background",
+   "ratio": 0.33
+  },
+  "hcDark": {
+   "op": "mix",
+   "color": "checkbox.foreground",
+   "with": "checkbox.background",
+   "ratio": 0.33
+  },
+  "hcLight": {
+   "op": "mix",
+   "color": "checkbox.foreground",
+   "with": "checkbox.background",
+   "ratio": 0.33
+  }
+ },
+ "checkbox.foreground": {
+  "dark": "dropdown.foreground",
+  "light": "dropdown.foreground",
+  "hcDark": "dropdown.foreground",
+  "hcLight": "dropdown.foreground"
+ },
+ "checkbox.selectBackground": {
+  "dark": "editorWidget.background",
+  "light": "editorWidget.background",
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "checkbox.selectBorder": {
+  "dark": "icon.foreground",
+  "light": "icon.foreground",
+  "hcDark": "icon.foreground",
+  "hcLight": "icon.foreground"
+ },
+ "commandCenter.activeBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.08
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.08
+  },
+  "hcDark": "menubar.selectionBackground",
+  "hcLight": "menubar.selectionBackground"
+ },
+ "commandCenter.activeBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "titleBar.activeForeground",
+   "factor": 0.3
+  },
+  "light": {
+   "op": "transparent",
+   "value": "titleBar.activeForeground",
+   "factor": 0.3
+  },
+  "hcDark": "titleBar.activeForeground",
+  "hcLight": "titleBar.activeForeground"
+ },
+ "commandCenter.activeForeground": {
+  "dark": "menubar.selectionForeground",
+  "light": "menubar.selectionForeground",
+  "hcDark": "menubar.selectionForeground",
+  "hcLight": "menubar.selectionForeground"
+ },
+ "commandCenter.background": {
+  "dark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.05
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.05
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "commandCenter.border": {
+  "dark": {
+   "op": "transparent",
+   "value": "titleBar.activeForeground",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "transparent",
+   "value": "titleBar.activeForeground",
+   "factor": 0.2
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "commandCenter.foreground": {
+  "dark": "titleBar.activeForeground",
+  "light": "titleBar.activeForeground",
+  "hcDark": "titleBar.activeForeground",
+  "hcLight": "titleBar.activeForeground"
+ },
+ "commandCenter.inactiveBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "titleBar.inactiveForeground",
+   "factor": 0.25
+  },
+  "light": {
+   "op": "transparent",
+   "value": "titleBar.inactiveForeground",
+   "factor": 0.25
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "titleBar.inactiveForeground",
+   "factor": 0.25
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "titleBar.inactiveForeground",
+   "factor": 0.25
+  }
+ },
+ "commandCenter.inactiveForeground": {
+  "dark": "titleBar.inactiveForeground",
+  "light": "titleBar.inactiveForeground",
+  "hcDark": "titleBar.inactiveForeground",
+  "hcLight": "titleBar.inactiveForeground"
+ },
+ "contrastActiveBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "focusBorder",
+  "hcLight": "focusBorder"
+ },
+ "contrastBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "#6FC3DF",
+  "hcLight": "#0F4A85"
+ },
+ "descriptionForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.7
+  },
+  "light": "#717171",
+  "hcDark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.7
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.7
+  }
+ },
+ "diffEditor.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "diffEditor.diagonalFill": {
+  "dark": "#cccccc33",
+  "light": "#22222233",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditor.insertedLineBackground": {
+  "dark": "#9bb95533",
+  "light": "#9bb95533",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditor.insertedTextBackground": {
+  "dark": "#9ccc2c33",
+  "light": "#9ccc2c40",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditor.insertedTextBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "#33ff2eff",
+  "hcLight": "#374E06"
+ },
+ "diffEditor.removedLineBackground": {
+  "dark": "#ff000033",
+  "light": "#ff000033",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditor.removedTextBackground": {
+  "dark": "#ff000033",
+  "light": "#ff000033",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditor.removedTextBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "#FF008F",
+  "hcLight": "#AD0707"
+ },
+ "diffEditor.unchangedCodeBackground": {
+  "dark": "#74747429",
+  "light": "#b8b8b829",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditor.unchangedRegionBackground": {
+  "dark": "sideBar.background",
+  "light": "sideBar.background",
+  "hcDark": "sideBar.background",
+  "hcLight": "sideBar.background"
+ },
+ "diffEditor.unchangedRegionForeground": {
+  "dark": "foreground",
+  "light": "foreground",
+  "hcDark": "foreground",
+  "hcLight": "foreground"
+ },
+ "diffEditorGutter.insertedLineBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditorGutter.removedLineBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditorOverview.insertedForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "diffEditorOverview.removedForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "disabledForeground": {
+  "dark": "#CCCCCC80",
+  "light": "#61616180",
+  "hcDark": "#A5A5A5",
+  "hcLight": "#7F7F7F"
+ },
+ "dropdown.background": {
+  "dark": "#3C3C3C",
+  "light": "#ffffff",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "dropdown.border": {
+  "dark": "dropdown.background",
+  "light": "#CECECE",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "dropdown.foreground": {
+  "dark": "#F0F0F0",
+  "light": "foreground",
+  "hcDark": "#ffffff",
+  "hcLight": "foreground"
+ },
+ "dropdown.listBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "editor.background": {
+  "dark": "#1E1E1E",
+  "light": "#ffffff",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "editor.border": {
+  "dark": "surface.border",
+  "light": "surface.border",
+  "hcDark": "surface.border",
+  "hcLight": "surface.border"
+ },
+ "editor.compositionBorder": {
+  "dark": "#ffffff",
+  "light": "#000000",
+  "hcDark": "#ffffff",
+  "hcLight": "#000000"
+ },
+ "editor.findMatchBackground": {
+  "dark": "#515C6A",
+  "light": "#A8AC94",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editor.findMatchBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "editor.findMatchForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editor.findMatchHighlightBackground": {
+  "dark": "#EA5C0055",
+  "light": "#EA5C0055",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editor.findMatchHighlightBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "editor.findMatchHighlightForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editor.findRangeHighlightBackground": {
+  "dark": "#3a3d4166",
+  "light": "#b4b4b44d",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editor.findRangeHighlightBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": {
+   "op": "transparent",
+   "value": "contrastActiveBorder",
+   "factor": 0.4
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "contrastActiveBorder",
+   "factor": 0.4
+  }
+ },
+ "editor.foreground": {
+  "dark": "#BBBBBB",
+  "light": "#333333",
+  "hcDark": "#ffffff",
+  "hcLight": "foreground"
+ },
+ "editor.hoverHighlightBackground": {
+  "dark": "#264f7840",
+  "light": "#ADD6FF26",
+  "hcDark": "#ADD6FF26",
+  "hcLight": null
+ },
+ "editor.inactiveSelectionBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "editor.selectionBackground",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "editor.selectionBackground",
+   "factor": 0.5
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "editor.selectionBackground",
+   "factor": 0.7
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "editor.selectionBackground",
+   "factor": 0.5
+  }
+ },
+ "editor.selectionBackground": {
+  "dark": "#264F78",
+  "light": "#ADD6FF",
+  "hcDark": "#f3f518",
+  "hcLight": "#0F4A85"
+ },
+ "editor.selectionForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "editor.selectionHighlightBackground": {
+  "dark": {
+   "op": "lessProminent",
+   "value": "editor.selectionBackground",
+   "background": "editor.background",
+   "factor": 0.3,
+   "transparency": 0.6
+  },
+  "light": {
+   "op": "lessProminent",
+   "value": "editor.selectionBackground",
+   "background": "editor.background",
+   "factor": 0.3,
+   "transparency": 0.6
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editor.selectionHighlightBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "editor.snippetFinalTabstopHighlightBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editor.snippetFinalTabstopHighlightBorder": {
+  "dark": "#525252",
+  "light": "#0a326480",
+  "hcDark": "#525252",
+  "hcLight": "#292929"
+ },
+ "editor.snippetTabstopHighlightBackground": {
+  "dark": "#7c7c7c4d",
+  "light": "#0a326433",
+  "hcDark": "#7c7c7c4d",
+  "hcLight": "#0a326433"
+ },
+ "editor.snippetTabstopHighlightBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorActionList.background": {
+  "dark": "editorWidget.background",
+  "light": "editorWidget.background",
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "editorActionList.focusBackground": {
+  "dark": "list.activeSelectionBackground",
+  "light": "list.activeSelectionBackground",
+  "hcDark": "list.activeSelectionBackground",
+  "hcLight": "list.activeSelectionBackground"
+ },
+ "editorActionList.focusForeground": {
+  "dark": "list.activeSelectionForeground",
+  "light": "list.activeSelectionForeground",
+  "hcDark": "list.activeSelectionForeground",
+  "hcLight": "list.activeSelectionForeground"
+ },
+ "editorActionList.foreground": {
+  "dark": "editorWidget.foreground",
+  "light": "editorWidget.foreground",
+  "hcDark": "editorWidget.foreground",
+  "hcLight": "editorWidget.foreground"
+ },
+ "editorError.background": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorError.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": {
+   "op": "transparent",
+   "value": "#E47777",
+   "factor": 0.8
+  },
+  "hcLight": "#B5200D"
+ },
+ "editorError.foreground": {
+  "dark": "#F14C4C",
+  "light": "#E51400",
+  "hcDark": "#F48771",
+  "hcLight": "#B5200D"
+ },
+ "editorGroup.border": {
+  "dark": "#444444",
+  "light": "#E7E7E7",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "editorGroup.dropBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#53595D",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#2677CB",
+   "factor": 0.18
+  },
+  "hcDark": null,
+  "hcLight": {
+   "op": "transparent",
+   "value": "#0F4A85",
+   "factor": 0.5
+  }
+ },
+ "editorGroup.dropIntoPromptBackground": {
+  "dark": "editorWidget.background",
+  "light": "editorWidget.background",
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "editorGroup.dropIntoPromptBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "editorGroup.dropIntoPromptForeground": {
+  "dark": "editorWidget.foreground",
+  "light": "editorWidget.foreground",
+  "hcDark": "editorWidget.foreground",
+  "hcLight": "editorWidget.foreground"
+ },
+ "editorGroup.emptyBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorGroup.focusedEmptyBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "focusBorder",
+  "hcLight": "focusBorder"
+ },
+ "editorGroupHeader.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "editorGroupHeader.connectedTabsBackground": {
+  "dark": "editorGroupHeader.tabsBackground",
+  "light": "editorGroupHeader.tabsBackground",
+  "hcDark": "editorGroupHeader.tabsBackground",
+  "hcLight": "editorGroupHeader.tabsBackground"
+ },
+ "editorGroupHeader.noTabsBackground": {
+  "dark": "editor.background",
+  "light": "editor.background",
+  "hcDark": "editor.background",
+  "hcLight": "editor.background"
+ },
+ "editorGroupHeader.tabsBackground": {
+  "dark": "#252526",
+  "light": "#F3F3F3",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorGroupHeader.tabsBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorHint.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": {
+   "op": "transparent",
+   "value": "#eeeeee",
+   "factor": 0.8
+  },
+  "hcLight": "#292929"
+ },
+ "editorHint.foreground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#eeeeee",
+   "factor": 0.7
+  },
+  "light": "#6c6c6c",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorHoverWidget.background": {
+  "dark": "editorWidget.background",
+  "light": "editorWidget.background",
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "editorHoverWidget.border": {
+  "dark": "editorWidget.border",
+  "light": "editorWidget.border",
+  "hcDark": "editorWidget.border",
+  "hcLight": "editorWidget.border"
+ },
+ "editorHoverWidget.foreground": {
+  "dark": "editorWidget.foreground",
+  "light": "editorWidget.foreground",
+  "hcDark": "editorWidget.foreground",
+  "hcLight": "editorWidget.foreground"
+ },
+ "editorHoverWidget.statusBarBackground": {
+  "dark": {
+   "op": "lighten",
+   "value": "editorHoverWidget.background",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "darken",
+   "value": "editorHoverWidget.background",
+   "factor": 0.05
+  },
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "editorInfo.background": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorInfo.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": {
+   "op": "transparent",
+   "value": "#59a4f9",
+   "factor": 0.8
+  },
+  "hcLight": "#292929"
+ },
+ "editorInfo.foreground": {
+  "dark": "#59a4f9",
+  "light": "#0063d3",
+  "hcDark": "#59a4f9",
+  "hcLight": "#0063d3"
+ },
+ "editorInlayHint.background": {
+  "dark": {
+   "op": "transparent",
+   "value": "badge.background",
+   "factor": 0.1
+  },
+  "light": {
+   "op": "transparent",
+   "value": "badge.background",
+   "factor": 0.1
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.1
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "badge.background",
+   "factor": 0.1
+  }
+ },
+ "editorInlayHint.foreground": {
+  "dark": "#969696",
+  "light": "#969696",
+  "hcDark": "#ffffff",
+  "hcLight": "#000000"
+ },
+ "editorInlayHint.parameterBackground": {
+  "dark": "editorInlayHint.background",
+  "light": "editorInlayHint.background",
+  "hcDark": "editorInlayHint.background",
+  "hcLight": "editorInlayHint.background"
+ },
+ "editorInlayHint.parameterForeground": {
+  "dark": "editorInlayHint.foreground",
+  "light": "editorInlayHint.foreground",
+  "hcDark": "editorInlayHint.foreground",
+  "hcLight": "editorInlayHint.foreground"
+ },
+ "editorInlayHint.typeBackground": {
+  "dark": "editorInlayHint.background",
+  "light": "editorInlayHint.background",
+  "hcDark": "editorInlayHint.background",
+  "hcLight": "editorInlayHint.background"
+ },
+ "editorInlayHint.typeForeground": {
+  "dark": "editorInlayHint.foreground",
+  "light": "editorInlayHint.foreground",
+  "hcDark": "editorInlayHint.foreground",
+  "hcLight": "editorInlayHint.foreground"
+ },
+ "editorLightBulb.foreground": {
+  "dark": "#FFCC00",
+  "light": "#DDB100",
+  "hcDark": "#FFCC00",
+  "hcLight": "#007ACC"
+ },
+ "editorLightBulbAi.foreground": {
+  "dark": "editorLightBulb.foreground",
+  "light": "editorLightBulb.foreground",
+  "hcDark": "editorLightBulb.foreground",
+  "hcLight": "editorLightBulb.foreground"
+ },
+ "editorLightBulbAutoFix.foreground": {
+  "dark": "#75BEFF",
+  "light": "#007ACC",
+  "hcDark": "#75BEFF",
+  "hcLight": "#007ACC"
+ },
+ "editorLink.activeForeground": {
+  "dark": "#4E94CE",
+  "light": "#0000ff",
+  "hcDark": "#00ffff",
+  "hcLight": "#292929"
+ },
+ "editorOverviewRuler.commonContentForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "merge.commonHeaderBackground",
+   "factor": 1
+  },
+  "light": {
+   "op": "transparent",
+   "value": "merge.commonHeaderBackground",
+   "factor": 1
+  },
+  "hcDark": "merge.border",
+  "hcLight": "merge.border"
+ },
+ "editorOverviewRuler.currentContentForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "merge.currentHeaderBackground",
+   "factor": 1
+  },
+  "light": {
+   "op": "transparent",
+   "value": "merge.currentHeaderBackground",
+   "factor": 1
+  },
+  "hcDark": "merge.border",
+  "hcLight": "merge.border"
+ },
+ "editorOverviewRuler.findMatchForeground": {
+  "dark": "#d186167e",
+  "light": "#d186167e",
+  "hcDark": "#AB5A00",
+  "hcLight": "#AB5A00"
+ },
+ "editorOverviewRuler.incomingContentForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "merge.incomingHeaderBackground",
+   "factor": 1
+  },
+  "light": {
+   "op": "transparent",
+   "value": "merge.incomingHeaderBackground",
+   "factor": 1
+  },
+  "hcDark": "merge.border",
+  "hcLight": "merge.border"
+ },
+ "editorOverviewRuler.selectionHighlightForeground": {
+  "dark": "#A0A0A0CC",
+  "light": "#A0A0A0CC",
+  "hcDark": "#A0A0A0CC",
+  "hcLight": "#A0A0A0CC"
+ },
+ "editorPane.background": {
+  "dark": "editor.background",
+  "light": "editor.background",
+  "hcDark": "editor.background",
+  "hcLight": "editor.background"
+ },
+ "editorStickyScroll.background": {
+  "dark": "editor.background",
+  "light": "editor.background",
+  "hcDark": "editor.background",
+  "hcLight": "editor.background"
+ },
+ "editorStickyScroll.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "editorStickyScroll.shadow": {
+  "dark": "scrollbar.shadow",
+  "light": "scrollbar.shadow",
+  "hcDark": "scrollbar.shadow",
+  "hcLight": "scrollbar.shadow"
+ },
+ "editorStickyScrollGutter.background": {
+  "dark": "editor.background",
+  "light": "editor.background",
+  "hcDark": "editor.background",
+  "hcLight": "editor.background"
+ },
+ "editorStickyScrollHover.background": {
+  "dark": "#2A2D2E",
+  "light": "#F0F0F0",
+  "hcDark": null,
+  "hcLight": {
+   "op": "transparent",
+   "value": "#0F4A85",
+   "factor": 0.1
+  }
+ },
+ "editorWarning.background": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "editorWarning.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": {
+   "op": "transparent",
+   "value": "#FFCC00",
+   "factor": 0.8
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "#FFCC00",
+   "factor": 0.8
+  }
+ },
+ "editorWarning.foreground": {
+  "dark": "#CCA700",
+  "light": "#BF8803",
+  "hcDark": "#FFD370",
+  "hcLight": "#895503"
+ },
+ "editorWidget.background": {
+  "dark": "#252526",
+  "light": "#F3F3F3",
+  "hcDark": "#0C141F",
+  "hcLight": "#ffffff"
+ },
+ "editorWidget.border": {
+  "dark": {
+   "op": "transparent",
+   "value": "editorWidget.foreground",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "transparent",
+   "value": "editorWidget.foreground",
+   "factor": 0.2
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "editorWidget.foreground": {
+  "dark": "foreground",
+  "light": "foreground",
+  "hcDark": "foreground",
+  "hcLight": "foreground"
+ },
+ "editorWidget.resizeBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "errorForeground": {
+  "dark": "#F48771",
+  "light": "#A1260D",
+  "hcDark": "#F48771",
+  "hcLight": "#B5200D"
+ },
+ "extensionBadge.remoteBackground": {
+  "dark": "activityBarBadge.background",
+  "light": "activityBarBadge.background",
+  "hcDark": "activityBarBadge.background",
+  "hcLight": "activityBarBadge.background"
+ },
+ "extensionBadge.remoteForeground": {
+  "dark": "activityBarBadge.foreground",
+  "light": "activityBarBadge.foreground",
+  "hcDark": "activityBarBadge.foreground",
+  "hcLight": "activityBarBadge.foreground"
+ },
+ "focusBorder": {
+  "dark": "#007FD4",
+  "light": "#0090F1",
+  "hcDark": "#F38518",
+  "hcLight": "#006BBD"
+ },
+ "foreground": {
+  "dark": "#CCCCCC",
+  "light": "#616161",
+  "hcDark": "#FFFFFF",
+  "hcLight": "#292929"
+ },
+ "git.blame.editorDecorationForeground": {
+  "dark": "editorInlayHint.foreground",
+  "light": "editorInlayHint.foreground",
+  "hcDark": "editorInlayHint.foreground",
+  "hcLight": "editorInlayHint.foreground"
+ },
+ "gitDecoration.addedResourceForeground": {
+  "dark": "#81b88b",
+  "light": "#587c0c",
+  "hcDark": "#a1e3ad",
+  "hcLight": "#374e06"
+ },
+ "gitDecoration.conflictingResourceForeground": {
+  "dark": "#e4676b",
+  "light": "#ad0707",
+  "hcDark": "#c74e39",
+  "hcLight": "#ad0707"
+ },
+ "gitDecoration.deletedResourceForeground": {
+  "dark": "#c74e39",
+  "light": "#ad0707",
+  "hcDark": "#c74e39",
+  "hcLight": "#ad0707"
+ },
+ "gitDecoration.ignoredResourceForeground": {
+  "dark": "#8C8C8C",
+  "light": "#8E8E90",
+  "hcDark": "#A7A8A9",
+  "hcLight": "#8e8e90"
+ },
+ "gitDecoration.modifiedResourceForeground": {
+  "dark": "#E2C08D",
+  "light": "#895503",
+  "hcDark": "#E2C08D",
+  "hcLight": "#895503"
+ },
+ "gitDecoration.renamedResourceForeground": {
+  "dark": "#73C991",
+  "light": "#007100",
+  "hcDark": "#73C991",
+  "hcLight": "#007100"
+ },
+ "gitDecoration.stageDeletedResourceForeground": {
+  "dark": "#c74e39",
+  "light": "#ad0707",
+  "hcDark": "#c74e39",
+  "hcLight": "#ad0707"
+ },
+ "gitDecoration.stageModifiedResourceForeground": {
+  "dark": "#E2C08D",
+  "light": "#895503",
+  "hcDark": "#E2C08D",
+  "hcLight": "#895503"
+ },
+ "gitDecoration.submoduleResourceForeground": {
+  "dark": "#8db9e2",
+  "light": "#1258a7",
+  "hcDark": "#8db9e2",
+  "hcLight": "#1258a7"
+ },
+ "gitDecoration.untrackedResourceForeground": {
+  "dark": "#73C991",
+  "light": "#007100",
+  "hcDark": "#73C991",
+  "hcLight": "#007100"
+ },
+ "icon.foreground": {
+  "dark": "#C5C5C5",
+  "light": "#424242",
+  "hcDark": "#FFFFFF",
+  "hcLight": "#292929"
+ },
+ "input.background": {
+  "dark": "#3C3C3C",
+  "light": "#ffffff",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "input.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "input.foreground": {
+  "dark": "foreground",
+  "light": "foreground",
+  "hcDark": "foreground",
+  "hcLight": "foreground"
+ },
+ "input.placeholderForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.5
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.7
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.7
+  }
+ },
+ "inputOption.activeBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "focusBorder",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "focusBorder",
+   "factor": 0.2
+  },
+  "hcDark": "#00000000",
+  "hcLight": "#00000000"
+ },
+ "inputOption.activeBorder": {
+  "dark": "#007ACC",
+  "light": "#007ACC",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "inputOption.activeForeground": {
+  "dark": "#ffffff",
+  "light": "#000000",
+  "hcDark": "foreground",
+  "hcLight": "foreground"
+ },
+ "inputOption.hoverBackground": {
+  "dark": "#5a5d5e80",
+  "light": "#b8b8b850",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "inputValidation.errorBackground": {
+  "dark": "#5A1D1D",
+  "light": "#F2DEDE",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "inputValidation.errorBorder": {
+  "dark": "#BE1100",
+  "light": "#BE1100",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "inputValidation.errorForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": "foreground"
+ },
+ "inputValidation.infoBackground": {
+  "dark": "#063B49",
+  "light": "#D6ECF2",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "inputValidation.infoBorder": {
+  "dark": "#007acc",
+  "light": "#007acc",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "inputValidation.infoForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": "foreground"
+ },
+ "inputValidation.warningBackground": {
+  "dark": "#352A05",
+  "light": "#F6F5D2",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "inputValidation.warningBorder": {
+  "dark": "#B89500",
+  "light": "#B89500",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "inputValidation.warningForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": "foreground"
+ },
+ "keybindingLabel.background": {
+  "dark": "#8080802b",
+  "light": "#dddddd66",
+  "hcDark": "#00000000",
+  "hcLight": "#00000000"
+ },
+ "keybindingLabel.border": {
+  "dark": "#33333399",
+  "light": "#cccccc66",
+  "hcDark": "#6fc3df",
+  "hcLight": "contrastBorder"
+ },
+ "keybindingLabel.bottomBorder": {
+  "dark": "#44444499",
+  "light": "#bbbbbb66",
+  "hcDark": "#6fc3df",
+  "hcLight": "foreground"
+ },
+ "keybindingLabel.foreground": {
+  "dark": "#CCCCCC",
+  "light": "#555555",
+  "hcDark": "#ffffff",
+  "hcLight": "foreground"
+ },
+ "list.activeSelectionBackground": {
+  "dark": "#04395E",
+  "light": "#0060C0",
+  "hcDark": null,
+  "hcLight": {
+   "op": "transparent",
+   "value": "#0F4A85",
+   "factor": 0.1
+  }
+ },
+ "list.activeSelectionForeground": {
+  "dark": "#ffffff",
+  "light": "#ffffff",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.activeSelectionIconForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.deemphasizedForeground": {
+  "dark": "#8C8C8C",
+  "light": "#8E8E90",
+  "hcDark": "#A7A8A9",
+  "hcLight": "#666666"
+ },
+ "list.dropBackground": {
+  "dark": "#062F4A",
+  "light": "#D6EBFF",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.dropBetweenBackground": {
+  "dark": "icon.foreground",
+  "light": "icon.foreground",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.errorForeground": {
+  "dark": "#F88070",
+  "light": "#B01011",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.filterMatchBackground": {
+  "dark": "editor.findMatchHighlightBackground",
+  "light": "editor.findMatchHighlightBackground",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.filterMatchBorder": {
+  "dark": "editor.findMatchHighlightBorder",
+  "light": "editor.findMatchHighlightBorder",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "list.focusAndSelectionOutline": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.focusBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.focusForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.focusHighlightForeground": {
+  "dark": "list.highlightForeground",
+  "light": {
+   "op": "ifDefinedThenElse",
+   "if": "list.activeSelectionBackground",
+   "then": "list.highlightForeground",
+   "else": "#BBE7FF"
+  },
+  "hcDark": "list.highlightForeground",
+  "hcLight": "list.highlightForeground"
+ },
+ "list.focusOutline": {
+  "dark": "focusBorder",
+  "light": "focusBorder",
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "list.highlightForeground": {
+  "dark": "#2AAAFF",
+  "light": "#0066BF",
+  "hcDark": "focusBorder",
+  "hcLight": "focusBorder"
+ },
+ "list.hoverBackground": {
+  "dark": "#2A2D2E",
+  "light": "#F0F0F0",
+  "hcDark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.1
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "#0F4A85",
+   "factor": 0.1
+  }
+ },
+ "list.hoverForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.inactiveFocusBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.inactiveFocusOutline": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.inactiveSelectionBackground": {
+  "dark": "#37373D",
+  "light": "#E4E6F1",
+  "hcDark": null,
+  "hcLight": {
+   "op": "transparent",
+   "value": "#0F4A85",
+   "factor": 0.1
+  }
+ },
+ "list.inactiveSelectionForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.inactiveSelectionIconForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "list.invalidItemForeground": {
+  "dark": "#B89500",
+  "light": "#B89500",
+  "hcDark": "#B89500",
+  "hcLight": "#B5200D"
+ },
+ "list.warningForeground": {
+  "dark": "#CCA700",
+  "light": "#855F00",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "listFilterWidget.background": {
+  "dark": {
+   "op": "lighten",
+   "value": "editorWidget.background",
+   "factor": 0
+  },
+  "light": {
+   "op": "darken",
+   "value": "editorWidget.background",
+   "factor": 0
+  },
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "listFilterWidget.noMatchesOutline": {
+  "dark": "#BE1100",
+  "light": "#BE1100",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "listFilterWidget.outline": {
+  "dark": "#00000000",
+  "light": "#00000000",
+  "hcDark": "#f38518",
+  "hcLight": "#007ACC"
+ },
+ "listFilterWidget.shadow": {
+  "dark": "widget.shadow",
+  "light": "widget.shadow",
+  "hcDark": "widget.shadow",
+  "hcLight": "widget.shadow"
+ },
+ "menu.background": {
+  "dark": "dropdown.background",
+  "light": "dropdown.background",
+  "hcDark": "dropdown.background",
+  "hcLight": "dropdown.background"
+ },
+ "menu.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "menu.foreground": {
+  "dark": "dropdown.foreground",
+  "light": "dropdown.foreground",
+  "hcDark": "dropdown.foreground",
+  "hcLight": "dropdown.foreground"
+ },
+ "menu.selectionBackground": {
+  "dark": "list.activeSelectionBackground",
+  "light": "list.activeSelectionBackground",
+  "hcDark": "list.activeSelectionBackground",
+  "hcLight": "list.activeSelectionBackground"
+ },
+ "menu.selectionBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "menu.selectionForeground": {
+  "dark": "list.activeSelectionForeground",
+  "light": "list.activeSelectionForeground",
+  "hcDark": "list.activeSelectionForeground",
+  "hcLight": "list.activeSelectionForeground"
+ },
+ "menu.separatorBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.2
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "menubar.selectionBackground": {
+  "dark": "toolbar.hoverBackground",
+  "light": "toolbar.hoverBackground",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "menubar.selectionBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "menubar.selectionForeground": {
+  "dark": "titleBar.activeForeground",
+  "light": "titleBar.activeForeground",
+  "hcDark": "titleBar.activeForeground",
+  "hcLight": "titleBar.activeForeground"
+ },
+ "merge.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "#C3DF6F",
+  "hcLight": "#007ACC"
+ },
+ "merge.commonContentBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "merge.commonHeaderBackground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "merge.commonHeaderBackground",
+   "factor": 0.4
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "merge.commonHeaderBackground",
+   "factor": 0.4
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "merge.commonHeaderBackground",
+   "factor": 0.4
+  }
+ },
+ "merge.commonHeaderBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#606060",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#606060",
+   "factor": 0.4
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "merge.currentContentBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "merge.currentHeaderBackground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "merge.currentHeaderBackground",
+   "factor": 0.4
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "merge.currentHeaderBackground",
+   "factor": 0.4
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "merge.currentHeaderBackground",
+   "factor": 0.4
+  }
+ },
+ "merge.currentHeaderBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#40C8AE",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#40C8AE",
+   "factor": 0.5
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "merge.incomingContentBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "merge.incomingHeaderBackground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "merge.incomingHeaderBackground",
+   "factor": 0.4
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "merge.incomingHeaderBackground",
+   "factor": 0.4
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "merge.incomingHeaderBackground",
+   "factor": 0.4
+  }
+ },
+ "merge.incomingHeaderBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#40A6FF",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#40A6FF",
+   "factor": 0.5
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "modernActivityBar.activeBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "modernActivityBar.activeForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "modernActivityBar.background": {
+  "dark": "activityBar.background",
+  "light": "activityBar.background",
+  "hcDark": "activityBar.background",
+  "hcLight": "activityBar.background"
+ },
+ "modernActivityBar.border": {
+  "dark": "surface.border",
+  "light": "surface.border",
+  "hcDark": "surface.border",
+  "hcLight": "surface.border"
+ },
+ "modernActivityBar.hoverBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "modernActivityBar.hoverForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "modernActivityBar.inactiveBackground": {
+  "dark": "modernActivityBar.background",
+  "light": "modernActivityBar.background",
+  "hcDark": "modernActivityBar.background",
+  "hcLight": "modernActivityBar.background"
+ },
+ "modernActivityBarItem.activeBackground": {
+  "dark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeBackground",
+    "modernTab.activeBackground"
+   ]
+  },
+  "light": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeBackground",
+    "modernTab.activeBackground"
+   ]
+  },
+  "hcDark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeBackground",
+    "modernTab.activeBackground"
+   ]
+  },
+  "hcLight": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeBackground",
+    "modernTab.activeBackground"
+   ]
+  }
+ },
+ "modernActivityBarItem.activeForeground": {
+  "dark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeForeground",
+    "modernTab.activeForeground"
+   ]
+  },
+  "light": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeForeground",
+    "modernTab.activeForeground"
+   ]
+  },
+  "hcDark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeForeground",
+    "modernTab.activeForeground"
+   ]
+  },
+  "hcLight": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.activeForeground",
+    "modernTab.activeForeground"
+   ]
+  }
+ },
+ "modernActivityBarItem.hoverBackground": {
+  "dark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverBackground",
+    "modernTab.hoverBackground"
+   ]
+  },
+  "light": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverBackground",
+    "modernTab.hoverBackground"
+   ]
+  },
+  "hcDark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverBackground",
+    "modernTab.hoverBackground"
+   ]
+  },
+  "hcLight": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverBackground",
+    "modernTab.hoverBackground"
+   ]
+  }
+ },
+ "modernActivityBarItem.hoverForeground": {
+  "dark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverForeground",
+    "modernTab.hoverForeground"
+   ]
+  },
+  "light": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverForeground",
+    "modernTab.hoverForeground"
+   ]
+  },
+  "hcDark": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverForeground",
+    "modernTab.hoverForeground"
+   ]
+  },
+  "hcLight": {
+   "op": "oneOf",
+   "values": [
+    "modernActivityBar.hoverForeground",
+    "modernTab.hoverForeground"
+   ]
+  }
+ },
+ "modernEditorTab.activeActionBackground": {
+  "dark": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeBackground",
+   "background": "editor.background"
+  },
+  "light": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeBackground",
+   "background": "editor.background"
+  },
+  "hcDark": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeBackground",
+   "background": "editor.background"
+  },
+  "hcLight": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeBackground",
+   "background": "editor.background"
+  }
+ },
+ "modernEditorTab.activeBackground": {
+  "dark": "modernTab.activeBackground",
+  "light": "modernTab.activeBackground",
+  "hcDark": "modernTab.activeBackground",
+  "hcLight": "modernTab.activeBackground"
+ },
+ "modernEditorTab.activeForeground": {
+  "dark": "modernTab.activeForeground",
+  "light": "modernTab.activeForeground",
+  "hcDark": "modernTab.activeForeground",
+  "hcLight": "modernTab.activeForeground"
+ },
+ "modernEditorTab.activeHoverActionBackground": {
+  "dark": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeHoverBackground",
+   "background": "editor.background"
+  },
+  "light": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeHoverBackground",
+   "background": "editor.background"
+  },
+  "hcDark": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeHoverBackground",
+   "background": "editor.background"
+  },
+  "hcLight": {
+   "op": "opaque",
+   "value": "modernEditorTab.activeHoverBackground",
+   "background": "editor.background"
+  }
+ },
+ "modernEditorTab.activeHoverBackground": {
+  "dark": "modernEditorTab.hoverBackground",
+  "light": "modernEditorTab.hoverBackground",
+  "hcDark": "modernEditorTab.hoverBackground",
+  "hcLight": "modernEditorTab.hoverBackground"
+ },
+ "modernEditorTab.hoverActionBackground": {
+  "dark": {
+   "op": "opaque",
+   "value": "modernEditorTab.hoverBackground",
+   "background": "editor.background"
+  },
+  "light": {
+   "op": "opaque",
+   "value": "modernEditorTab.hoverBackground",
+   "background": "editor.background"
+  },
+  "hcDark": {
+   "op": "opaque",
+   "value": "modernEditorTab.hoverBackground",
+   "background": "editor.background"
+  },
+  "hcLight": {
+   "op": "opaque",
+   "value": "modernEditorTab.hoverBackground",
+   "background": "editor.background"
+  }
+ },
+ "modernEditorTab.hoverBackground": {
+  "dark": "modernTab.hoverBackground",
+  "light": "modernTab.hoverBackground",
+  "hcDark": "modernTab.hoverBackground",
+  "hcLight": "modernTab.hoverBackground"
+ },
+ "modernEditorTab.hoverForeground": {
+  "dark": "modernTab.hoverForeground",
+  "light": "modernTab.hoverForeground",
+  "hcDark": "modernTab.hoverForeground",
+  "hcLight": "modernTab.hoverForeground"
+ },
+ "modernEditorTab.inactiveBackground": {
+  "dark": "#00000000",
+  "light": "#00000000",
+  "hcDark": "#00000000",
+  "hcLight": "#00000000"
+ },
+ "modernEditorTab.selectedActionBackground": {
+  "dark": {
+   "op": "opaque",
+   "value": "tab.selectedBackground",
+   "background": "editor.background"
+  },
+  "light": {
+   "op": "opaque",
+   "value": "tab.selectedBackground",
+   "background": "editor.background"
+  },
+  "hcDark": {
+   "op": "opaque",
+   "value": "tab.selectedBackground",
+   "background": "editor.background"
+  },
+  "hcLight": {
+   "op": "opaque",
+   "value": "tab.selectedBackground",
+   "background": "editor.background"
+  }
+ },
+ "modernPanel.border": {
+  "dark": "surface.border",
+  "light": "surface.border",
+  "hcDark": "surface.border",
+  "hcLight": "surface.border"
+ },
+ "modernSash.gripForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.4
+  },
+  "hcDark": "foreground",
+  "hcLight": "foreground"
+ },
+ "modernTab.activeBackground": {
+  "dark": "list.inactiveSelectionBackground",
+  "light": "list.inactiveSelectionBackground",
+  "hcDark": "list.inactiveSelectionBackground",
+  "hcLight": "list.inactiveSelectionBackground"
+ },
+ "modernTab.activeForeground": {
+  "dark": {
+   "op": "oneOf",
+   "values": [
+    "list.inactiveSelectionForeground",
+    "foreground"
+   ]
+  },
+  "light": {
+   "op": "oneOf",
+   "values": [
+    "list.inactiveSelectionForeground",
+    "foreground"
+   ]
+  },
+  "hcDark": {
+   "op": "oneOf",
+   "values": [
+    "list.inactiveSelectionForeground",
+    "foreground"
+   ]
+  },
+  "hcLight": {
+   "op": "oneOf",
+   "values": [
+    "list.inactiveSelectionForeground",
+    "foreground"
+   ]
+  }
+ },
+ "modernTab.hoverBackground": {
+  "dark": "list.hoverBackground",
+  "light": "list.hoverBackground",
+  "hcDark": "list.hoverBackground",
+  "hcLight": "list.hoverBackground"
+ },
+ "modernTab.hoverForeground": {
+  "dark": {
+   "op": "oneOf",
+   "values": [
+    "list.hoverForeground",
+    "foreground"
+   ]
+  },
+  "light": {
+   "op": "oneOf",
+   "values": [
+    "list.hoverForeground",
+    "foreground"
+   ]
+  },
+  "hcDark": {
+   "op": "oneOf",
+   "values": [
+    "list.hoverForeground",
+    "foreground"
+   ]
+  },
+  "hcLight": {
+   "op": "oneOf",
+   "values": [
+    "list.hoverForeground",
+    "foreground"
+   ]
+  }
+ },
+ "modernUI.inactiveShellBackground": {
+  "dark": "titleBar.inactiveBackground",
+  "light": "titleBar.inactiveBackground",
+  "hcDark": "titleBar.inactiveBackground",
+  "hcLight": "titleBar.inactiveBackground"
+ },
+ "modernUI.shellBackground": {
+  "dark": "titleBar.activeBackground",
+  "light": "titleBar.activeBackground",
+  "hcDark": "titleBar.activeBackground",
+  "hcLight": "titleBar.activeBackground"
+ },
+ "notificationCenter.border": {
+  "dark": "widget.border",
+  "light": "widget.border",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "notificationCenterHeader.background": {
+  "dark": {
+   "op": "lighten",
+   "value": "notifications.background",
+   "factor": 0.3
+  },
+  "light": {
+   "op": "darken",
+   "value": "notifications.background",
+   "factor": 0.05
+  },
+  "hcDark": "notifications.background",
+  "hcLight": "notifications.background"
+ },
+ "notificationCenterHeader.foreground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "notificationLink.foreground": {
+  "dark": "textLink.foreground",
+  "light": "textLink.foreground",
+  "hcDark": "textLink.foreground",
+  "hcLight": "textLink.foreground"
+ },
+ "notifications.background": {
+  "dark": "editorWidget.background",
+  "light": "editorWidget.background",
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "notifications.border": {
+  "dark": "notificationCenterHeader.background",
+  "light": "notificationCenterHeader.background",
+  "hcDark": "notificationCenterHeader.background",
+  "hcLight": "notificationCenterHeader.background"
+ },
+ "notifications.foreground": {
+  "dark": "editorWidget.foreground",
+  "light": "editorWidget.foreground",
+  "hcDark": "editorWidget.foreground",
+  "hcLight": "editorWidget.foreground"
+ },
+ "notificationsErrorIcon.foreground": {
+  "dark": "editorError.foreground",
+  "light": "editorError.foreground",
+  "hcDark": "editorError.foreground",
+  "hcLight": "editorError.foreground"
+ },
+ "notificationsInfoIcon.foreground": {
+  "dark": "editorInfo.foreground",
+  "light": "editorInfo.foreground",
+  "hcDark": "editorInfo.foreground",
+  "hcLight": "editorInfo.foreground"
+ },
+ "notificationsWarningIcon.foreground": {
+  "dark": "editorWarning.foreground",
+  "light": "editorWarning.foreground",
+  "hcDark": "editorWarning.foreground",
+  "hcLight": "editorWarning.foreground"
+ },
+ "notificationToast.border": {
+  "dark": "widget.border",
+  "light": "widget.border",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "outputView.background": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "outputViewStickyScroll.background": {
+  "dark": "outputView.background",
+  "light": "outputView.background",
+  "hcDark": "outputView.background",
+  "hcLight": "outputView.background"
+ },
+ "panel.background": {
+  "dark": "editor.background",
+  "light": "editor.background",
+  "hcDark": "editor.background",
+  "hcLight": "editor.background"
+ },
+ "panel.border": {
+  "dark": {
+   "op": "transparent",
+   "value": "#808080",
+   "factor": 0.35
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#808080",
+   "factor": 0.35
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "panel.dropBorder": {
+  "dark": "panelTitle.activeForeground",
+  "light": "panelTitle.activeForeground",
+  "hcDark": "panelTitle.activeForeground",
+  "hcLight": "panelTitle.activeForeground"
+ },
+ "panelInput.border": {
+  "dark": "input.border",
+  "light": "#ddd",
+  "hcDark": "input.border",
+  "hcLight": "input.border"
+ },
+ "panelSection.border": {
+  "dark": "panel.border",
+  "light": "panel.border",
+  "hcDark": "panel.border",
+  "hcLight": "panel.border"
+ },
+ "panelSection.dropBackground": {
+  "dark": "editorGroup.dropBackground",
+  "light": "editorGroup.dropBackground",
+  "hcDark": "editorGroup.dropBackground",
+  "hcLight": "editorGroup.dropBackground"
+ },
+ "panelSectionHeader.background": {
+  "dark": {
+   "op": "transparent",
+   "value": "#808080",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#808080",
+   "factor": 0.2
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "panelSectionHeader.border": {
+  "dark": "contrastBorder",
+  "light": "contrastBorder",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "panelSectionHeader.foreground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "panelStickyScroll.background": {
+  "dark": "panel.background",
+  "light": "panel.background",
+  "hcDark": "panel.background",
+  "hcLight": "panel.background"
+ },
+ "panelStickyScroll.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "panelStickyScroll.shadow": {
+  "dark": "scrollbar.shadow",
+  "light": "scrollbar.shadow",
+  "hcDark": "scrollbar.shadow",
+  "hcLight": "scrollbar.shadow"
+ },
+ "panelTitle.activeBorder": {
+  "dark": "panelTitle.activeForeground",
+  "light": "panelTitle.activeForeground",
+  "hcDark": "contrastBorder",
+  "hcLight": "#B5200D"
+ },
+ "panelTitle.activeForeground": {
+  "dark": "#E7E7E7",
+  "light": "#424242",
+  "hcDark": "#ffffff",
+  "hcLight": "editor.foreground"
+ },
+ "panelTitle.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "panel.border",
+  "hcLight": "panel.border"
+ },
+ "panelTitle.inactiveForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "panelTitle.activeForeground",
+   "factor": 0.6
+  },
+  "light": {
+   "op": "transparent",
+   "value": "panelTitle.activeForeground",
+   "factor": 0.75
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "editor.foreground"
+ },
+ "panelTitleBadge.background": {
+  "dark": "activityBarBadge.background",
+  "light": "activityBarBadge.background",
+  "hcDark": "activityBarBadge.background",
+  "hcLight": "activityBarBadge.background"
+ },
+ "panelTitleBadge.foreground": {
+  "dark": "activityBarBadge.foreground",
+  "light": "activityBarBadge.foreground",
+  "hcDark": "activityBarBadge.foreground",
+  "hcLight": "activityBarBadge.foreground"
+ },
+ "pickerGroup.border": {
+  "dark": "#3F3F46",
+  "light": "#CCCEDB",
+  "hcDark": "#ffffff",
+  "hcLight": "#0F4A85"
+ },
+ "pickerGroup.foreground": {
+  "dark": "#3794FF",
+  "light": "#0066BF",
+  "hcDark": "#ffffff",
+  "hcLight": "#0F4A85"
+ },
+ "problemsErrorIcon.foreground": {
+  "dark": "editorError.foreground",
+  "light": "editorError.foreground",
+  "hcDark": "editorError.foreground",
+  "hcLight": "editorError.foreground"
+ },
+ "problemsInfoIcon.foreground": {
+  "dark": "editorInfo.foreground",
+  "light": "editorInfo.foreground",
+  "hcDark": "editorInfo.foreground",
+  "hcLight": "editorInfo.foreground"
+ },
+ "problemsWarningIcon.foreground": {
+  "dark": "editorWarning.foreground",
+  "light": "editorWarning.foreground",
+  "hcDark": "editorWarning.foreground",
+  "hcLight": "editorWarning.foreground"
+ },
+ "profileBadge.background": {
+  "dark": "#4D4D4D",
+  "light": "#C4C4C4",
+  "hcDark": "#ffffff",
+  "hcLight": "#000000"
+ },
+ "profileBadge.foreground": {
+  "dark": "#ffffff",
+  "light": "#333333",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "progressBar.background": {
+  "dark": "#0E70C0",
+  "light": "#0E70C0",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "quickInput.background": {
+  "dark": "editorWidget.background",
+  "light": "editorWidget.background",
+  "hcDark": "editorWidget.background",
+  "hcLight": "editorWidget.background"
+ },
+ "quickInput.foreground": {
+  "dark": "editorWidget.foreground",
+  "light": "editorWidget.foreground",
+  "hcDark": "editorWidget.foreground",
+  "hcLight": "editorWidget.foreground"
+ },
+ "quickInput.list.focusBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "quickInputList.focusBackground": {
+  "dark": {
+   "op": "oneOf",
+   "values": [
+    "quickInput.list.focusBackground",
+    "list.activeSelectionBackground"
+   ]
+  },
+  "light": {
+   "op": "oneOf",
+   "values": [
+    "quickInput.list.focusBackground",
+    "list.activeSelectionBackground"
+   ]
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "quickInputList.focusForeground": {
+  "dark": "list.activeSelectionForeground",
+  "light": "list.activeSelectionForeground",
+  "hcDark": "list.activeSelectionForeground",
+  "hcLight": "list.activeSelectionForeground"
+ },
+ "quickInputList.focusHighlightForeground": {
+  "dark": "list.focusHighlightForeground",
+  "light": "list.focusHighlightForeground",
+  "hcDark": "list.focusHighlightForeground",
+  "hcLight": "list.focusHighlightForeground"
+ },
+ "quickInputList.focusIconForeground": {
+  "dark": "list.activeSelectionIconForeground",
+  "light": "list.activeSelectionIconForeground",
+  "hcDark": "list.activeSelectionIconForeground",
+  "hcLight": "list.activeSelectionIconForeground"
+ },
+ "quickInputTitle.background": {
+  "dark": "#ffffff1b",
+  "light": "#0000000f",
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "radio.activeBackground": {
+  "dark": "inputOption.activeBackground",
+  "light": "inputOption.activeBackground",
+  "hcDark": "inputOption.activeBackground",
+  "hcLight": "inputOption.activeBackground"
+ },
+ "radio.activeBorder": {
+  "dark": "inputOption.activeBorder",
+  "light": "inputOption.activeBorder",
+  "hcDark": "inputOption.activeBorder",
+  "hcLight": "inputOption.activeBorder"
+ },
+ "radio.activeForeground": {
+  "dark": "inputOption.activeForeground",
+  "light": "inputOption.activeForeground",
+  "hcDark": "inputOption.activeForeground",
+  "hcLight": "inputOption.activeForeground"
+ },
+ "radio.inactiveBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "radio.inactiveBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "radio.activeForeground",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "transparent",
+   "value": "radio.activeForeground",
+   "factor": 0.2
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "radio.activeForeground",
+   "factor": 0.4
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "radio.activeForeground",
+   "factor": 0.2
+  }
+ },
+ "radio.inactiveForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "radio.inactiveHoverBackground": {
+  "dark": "inputOption.hoverBackground",
+  "light": "inputOption.hoverBackground",
+  "hcDark": "inputOption.hoverBackground",
+  "hcLight": "inputOption.hoverBackground"
+ },
+ "sash.hoverBorder": {
+  "dark": "focusBorder",
+  "light": "focusBorder",
+  "hcDark": "focusBorder",
+  "hcLight": "focusBorder"
+ },
+ "scrollbar.background": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "scrollbar.shadow": {
+  "dark": "#000000",
+  "light": "#DDDDDD",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "scrollbarSlider.activeBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#BFBFBF",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.6
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "scrollbarSlider.background": {
+  "dark": {
+   "op": "transparent",
+   "value": "#797979",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#646464",
+   "factor": 0.4
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "contrastBorder",
+   "factor": 0.6
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "contrastBorder",
+   "factor": 0.4
+  }
+ },
+ "scrollbarSlider.hoverBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#646464",
+   "factor": 0.7
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#646464",
+   "factor": 0.7
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "contrastBorder",
+   "factor": 0.8
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "contrastBorder",
+   "factor": 0.8
+  }
+ },
+ "selection.background": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "sideBar.background": {
+  "dark": "#252526",
+  "light": "#F3F3F3",
+  "hcDark": "#000000",
+  "hcLight": "#FFFFFF"
+ },
+ "sideBar.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "sideBar.dropBackground": {
+  "dark": "editorGroup.dropBackground",
+  "light": "editorGroup.dropBackground",
+  "hcDark": "editorGroup.dropBackground",
+  "hcLight": "editorGroup.dropBackground"
+ },
+ "sideBar.foreground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "sideBarActivityBarTop.border": {
+  "dark": "sideBarSectionHeader.border",
+  "light": "sideBarSectionHeader.border",
+  "hcDark": "sideBarSectionHeader.border",
+  "hcLight": "sideBarSectionHeader.border"
+ },
+ "sideBarSectionHeader.background": {
+  "dark": {
+   "op": "transparent",
+   "value": "#808080",
+   "factor": 0.2
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#808080",
+   "factor": 0.2
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "sideBarSectionHeader.border": {
+  "dark": "contrastBorder",
+  "light": "contrastBorder",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "sideBarSectionHeader.foreground": {
+  "dark": "sideBar.foreground",
+  "light": "sideBar.foreground",
+  "hcDark": "sideBar.foreground",
+  "hcLight": "sideBar.foreground"
+ },
+ "sideBarStickyScroll.background": {
+  "dark": "sideBar.background",
+  "light": "sideBar.background",
+  "hcDark": "sideBar.background",
+  "hcLight": "sideBar.background"
+ },
+ "sideBarStickyScroll.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "sideBarStickyScroll.shadow": {
+  "dark": "scrollbar.shadow",
+  "light": "scrollbar.shadow",
+  "hcDark": "scrollbar.shadow",
+  "hcLight": "scrollbar.shadow"
+ },
+ "sideBarTitle.background": {
+  "dark": "sideBar.background",
+  "light": "sideBar.background",
+  "hcDark": "sideBar.background",
+  "hcLight": "sideBar.background"
+ },
+ "sideBarTitle.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "sideBar.border",
+  "hcLight": "sideBar.border"
+ },
+ "sideBarTitle.foreground": {
+  "dark": "sideBar.foreground",
+  "light": "sideBar.foreground",
+  "hcDark": "sideBar.foreground",
+  "hcLight": "sideBar.foreground"
+ },
+ "sideBySideEditor.horizontalBorder": {
+  "dark": "editorGroup.border",
+  "light": "editorGroup.border",
+  "hcDark": "editorGroup.border",
+  "hcLight": "editorGroup.border"
+ },
+ "sideBySideEditor.verticalBorder": {
+  "dark": "editorGroup.border",
+  "light": "editorGroup.border",
+  "hcDark": "editorGroup.border",
+  "hcLight": "editorGroup.border"
+ },
+ "statusBar.background": {
+  "dark": "#007ACC",
+  "light": "#007ACC",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "statusBar.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "statusBar.focusBorder": {
+  "dark": "statusBar.foreground",
+  "light": "statusBar.foreground",
+  "hcDark": null,
+  "hcLight": "statusBar.foreground"
+ },
+ "statusBar.foreground": {
+  "dark": "#FFFFFF",
+  "light": "#FFFFFF",
+  "hcDark": "#FFFFFF",
+  "hcLight": "editor.foreground"
+ },
+ "statusBar.inactiveBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "statusBar.noFolderBackground": {
+  "dark": "#68217A",
+  "light": "#68217A",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "statusBar.noFolderBorder": {
+  "dark": "statusBar.border",
+  "light": "statusBar.border",
+  "hcDark": "statusBar.border",
+  "hcLight": "statusBar.border"
+ },
+ "statusBar.noFolderForeground": {
+  "dark": "statusBar.foreground",
+  "light": "statusBar.foreground",
+  "hcDark": "statusBar.foreground",
+  "hcLight": "statusBar.foreground"
+ },
+ "statusBarItem.activeBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.18
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.18
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.18
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.18
+  }
+ },
+ "statusBarItem.compactHoverBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.12
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.12
+  },
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "statusBarItem.errorBackground": {
+  "dark": {
+   "op": "darken",
+   "value": "errorForeground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "darken",
+   "value": "errorForeground",
+   "factor": 0.4
+  },
+  "hcDark": null,
+  "hcLight": "#B5200D"
+ },
+ "statusBarItem.errorForeground": {
+  "dark": "#ffffff",
+  "light": "#ffffff",
+  "hcDark": "#ffffff",
+  "hcLight": "#ffffff"
+ },
+ "statusBarItem.errorHoverBackground": {
+  "dark": "statusBarItem.hoverBackground",
+  "light": "statusBarItem.hoverBackground",
+  "hcDark": "statusBarItem.hoverBackground",
+  "hcLight": "statusBarItem.hoverBackground"
+ },
+ "statusBarItem.errorHoverForeground": {
+  "dark": "statusBarItem.hoverForeground",
+  "light": "statusBarItem.hoverForeground",
+  "hcDark": "statusBarItem.hoverForeground",
+  "hcLight": "statusBarItem.hoverForeground"
+ },
+ "statusBarItem.focusBorder": {
+  "dark": "statusBar.foreground",
+  "light": "statusBar.foreground",
+  "hcDark": null,
+  "hcLight": "contrastActiveBorder"
+ },
+ "statusBarItem.hoverBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#ffffff",
+   "factor": 0.12
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.12
+  },
+  "hcDark": "#000000",
+  "hcLight": "#ffffff"
+ },
+ "statusBarItem.hoverForeground": {
+  "dark": "statusBar.foreground",
+  "light": "statusBar.foreground",
+  "hcDark": "statusBar.foreground",
+  "hcLight": "statusBar.foreground"
+ },
+ "statusBarItem.offlineBackground": {
+  "dark": "#6c1717",
+  "light": "#6c1717",
+  "hcDark": "#6c1717",
+  "hcLight": "#6c1717"
+ },
+ "statusBarItem.offlineForeground": {
+  "dark": "statusBarItem.remoteForeground",
+  "light": "statusBarItem.remoteForeground",
+  "hcDark": "statusBarItem.remoteForeground",
+  "hcLight": "statusBarItem.remoteForeground"
+ },
+ "statusBarItem.offlineHoverBackground": {
+  "dark": "statusBarItem.hoverBackground",
+  "light": "statusBarItem.hoverBackground",
+  "hcDark": "statusBarItem.hoverBackground",
+  "hcLight": null
+ },
+ "statusBarItem.offlineHoverForeground": {
+  "dark": "statusBarItem.hoverForeground",
+  "light": "statusBarItem.hoverForeground",
+  "hcDark": "statusBarItem.hoverForeground",
+  "hcLight": "statusBarItem.hoverForeground"
+ },
+ "statusBarItem.prominentBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.5
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.5
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.5
+  }
+ },
+ "statusBarItem.prominentForeground": {
+  "dark": "statusBar.foreground",
+  "light": "statusBar.foreground",
+  "hcDark": "statusBar.foreground",
+  "hcLight": "statusBar.foreground"
+ },
+ "statusBarItem.prominentHoverBackground": {
+  "dark": "statusBarItem.hoverBackground",
+  "light": "statusBarItem.hoverBackground",
+  "hcDark": "statusBarItem.hoverBackground",
+  "hcLight": "statusBarItem.hoverBackground"
+ },
+ "statusBarItem.prominentHoverForeground": {
+  "dark": "statusBarItem.hoverForeground",
+  "light": "statusBarItem.hoverForeground",
+  "hcDark": "statusBarItem.hoverForeground",
+  "hcLight": "statusBarItem.hoverForeground"
+ },
+ "statusBarItem.remoteBackground": {
+  "dark": "activityBarBadge.background",
+  "light": "activityBarBadge.background",
+  "hcDark": "activityBarBadge.background",
+  "hcLight": "activityBarBadge.background"
+ },
+ "statusBarItem.remoteForeground": {
+  "dark": "activityBarBadge.foreground",
+  "light": "activityBarBadge.foreground",
+  "hcDark": "activityBarBadge.foreground",
+  "hcLight": "activityBarBadge.foreground"
+ },
+ "statusBarItem.remoteHoverBackground": {
+  "dark": "statusBarItem.hoverBackground",
+  "light": "statusBarItem.hoverBackground",
+  "hcDark": "statusBarItem.hoverBackground",
+  "hcLight": null
+ },
+ "statusBarItem.remoteHoverForeground": {
+  "dark": "statusBarItem.hoverForeground",
+  "light": "statusBarItem.hoverForeground",
+  "hcDark": "statusBarItem.hoverForeground",
+  "hcLight": "statusBarItem.hoverForeground"
+ },
+ "statusBarItem.warningBackground": {
+  "dark": {
+   "op": "darken",
+   "value": "editorWarning.foreground",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "darken",
+   "value": "editorWarning.foreground",
+   "factor": 0.4
+  },
+  "hcDark": null,
+  "hcLight": "#895503"
+ },
+ "statusBarItem.warningForeground": {
+  "dark": "#ffffff",
+  "light": "#ffffff",
+  "hcDark": "#ffffff",
+  "hcLight": "#ffffff"
+ },
+ "statusBarItem.warningHoverBackground": {
+  "dark": "statusBarItem.hoverBackground",
+  "light": "statusBarItem.hoverBackground",
+  "hcDark": "statusBarItem.hoverBackground",
+  "hcLight": "statusBarItem.hoverBackground"
+ },
+ "statusBarItem.warningHoverForeground": {
+  "dark": "statusBarItem.hoverForeground",
+  "light": "statusBarItem.hoverForeground",
+  "hcDark": "statusBarItem.hoverForeground",
+  "hcLight": "statusBarItem.hoverForeground"
+ },
+ "strongForeground": {
+  "dark": "#FFFFFF",
+  "light": "#000000",
+  "hcDark": "#FFFFFF",
+  "hcLight": "#000000"
+ },
+ "surface.background": {
+  "dark": "sideBar.background",
+  "light": "editor.background",
+  "hcDark": "sideBar.background",
+  "hcLight": "sideBar.background"
+ },
+ "surface.border": {
+  "dark": {
+   "op": "opaque",
+   "value": {
+    "op": "transparent",
+    "value": "foreground",
+    "factor": 0.15
+   },
+   "background": "surface.background"
+  },
+  "light": {
+   "op": "opaque",
+   "value": {
+    "op": "transparent",
+    "value": "foreground",
+    "factor": 0.15
+   },
+   "background": "surface.background"
+  },
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "surface.foreground": {
+  "dark": "sideBar.foreground",
+  "light": "sideBar.foreground",
+  "hcDark": "sideBar.foreground",
+  "hcLight": "sideBar.foreground"
+ },
+ "tab.activeBackground": {
+  "dark": "editor.background",
+  "light": "editor.background",
+  "hcDark": "editor.background",
+  "hcLight": "editor.background"
+ },
+ "tab.activeBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.activeBorderTop": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": "#B5200D"
+ },
+ "tab.activeForeground": {
+  "dark": "#ffffff",
+  "light": "#333333",
+  "hcDark": "#ffffff",
+  "hcLight": "#292929"
+ },
+ "tab.activeModifiedBorder": {
+  "dark": "#3399CC",
+  "light": "#33AAEE",
+  "hcDark": null,
+  "hcLight": "contrastBorder"
+ },
+ "tab.border": {
+  "dark": "#252526",
+  "light": "#F3F3F3",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "tab.divider": {
+  "dark": "tab.border",
+  "light": "tab.border",
+  "hcDark": "tab.border",
+  "hcLight": "tab.border"
+ },
+ "tab.dragAndDropBorder": {
+  "dark": "tab.activeForeground",
+  "light": "tab.activeForeground",
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "tab.hoverBackground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.hoverBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.hoverForeground": {
+  "dark": null,
+  "light": null,
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.inactiveBackground": {
+  "dark": "#2D2D2D",
+  "light": "#ECECEC",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.inactiveForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.activeForeground",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.activeForeground",
+   "factor": 0.7
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "#292929"
+ },
+ "tab.inactiveModifiedBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.activeModifiedBorder",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.activeModifiedBorder",
+   "factor": 0.5
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "contrastBorder"
+ },
+ "tab.lastPinnedBorder": {
+  "dark": "tree.indentGuidesStroke",
+  "light": "tree.indentGuidesStroke",
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "tab.selectedBackground": {
+  "dark": "list.inactiveSelectionBackground",
+  "light": "list.inactiveSelectionBackground",
+  "hcDark": "list.inactiveSelectionBackground",
+  "hcLight": "list.inactiveSelectionBackground"
+ },
+ "tab.selectedBorderTop": {
+  "dark": "focusBorder",
+  "light": "focusBorder",
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "tab.selectedForeground": {
+  "dark": "tab.activeForeground",
+  "light": "tab.activeForeground",
+  "hcDark": "tab.activeForeground",
+  "hcLight": "tab.activeForeground"
+ },
+ "tab.unfocusedActiveBackground": {
+  "dark": "tab.activeBackground",
+  "light": "tab.activeBackground",
+  "hcDark": "tab.activeBackground",
+  "hcLight": "tab.activeBackground"
+ },
+ "tab.unfocusedActiveBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.activeBorder",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.activeBorder",
+   "factor": 0.7
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.unfocusedActiveBorderTop": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.activeBorderTop",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.activeBorderTop",
+   "factor": 0.7
+  },
+  "hcDark": null,
+  "hcLight": "#B5200D"
+ },
+ "tab.unfocusedActiveForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.activeForeground",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.activeForeground",
+   "factor": 0.7
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "#292929"
+ },
+ "tab.unfocusedActiveModifiedBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.activeModifiedBorder",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.activeModifiedBorder",
+   "factor": 0.7
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "contrastBorder"
+ },
+ "tab.unfocusedHoverBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.hoverBackground",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.hoverBackground",
+   "factor": 0.7
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.unfocusedHoverBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.hoverBorder",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.hoverBorder",
+   "factor": 0.7
+  },
+  "hcDark": null,
+  "hcLight": "contrastBorder"
+ },
+ "tab.unfocusedHoverForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.hoverForeground",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.hoverForeground",
+   "factor": 0.5
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tab.unfocusedInactiveBackground": {
+  "dark": "tab.inactiveBackground",
+  "light": "tab.inactiveBackground",
+  "hcDark": "tab.inactiveBackground",
+  "hcLight": "tab.inactiveBackground"
+ },
+ "tab.unfocusedInactiveForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.inactiveForeground",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.inactiveForeground",
+   "factor": 0.5
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "#292929"
+ },
+ "tab.unfocusedInactiveModifiedBorder": {
+  "dark": {
+   "op": "transparent",
+   "value": "tab.inactiveModifiedBorder",
+   "factor": 0.5
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tab.inactiveModifiedBorder",
+   "factor": 0.5
+  },
+  "hcDark": "#ffffff",
+  "hcLight": "contrastBorder"
+ },
+ "textBlockQuote.background": {
+  "dark": "#222222",
+  "light": "#f2f2f2",
+  "hcDark": null,
+  "hcLight": "#F2F2F2"
+ },
+ "textBlockQuote.border": {
+  "dark": "#007acc80",
+  "light": "#007acc80",
+  "hcDark": "#ffffff",
+  "hcLight": "#292929"
+ },
+ "textCodeBlock.background": {
+  "dark": "#0a0a0a66",
+  "light": "#dcdcdc66",
+  "hcDark": "#000000",
+  "hcLight": "#F2F2F2"
+ },
+ "textLink.activeForeground": {
+  "dark": "#3794FF",
+  "light": "#006AB1",
+  "hcDark": "#21A6FF",
+  "hcLight": "#0F4A85"
+ },
+ "textLink.foreground": {
+  "dark": "#3794FF",
+  "light": "#006AB1",
+  "hcDark": "#21A6FF",
+  "hcLight": "#0F4A85"
+ },
+ "textPreformat.background": {
+  "dark": "#FFFFFF1A",
+  "light": "#0000001A",
+  "hcDark": null,
+  "hcLight": "#09345f"
+ },
+ "textPreformat.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": null
+ },
+ "textPreformat.foreground": {
+  "dark": "#D7BA7D",
+  "light": "#A31515",
+  "hcDark": "#FFFFFF",
+  "hcLight": "#FFFFFF"
+ },
+ "textSeparator.foreground": {
+  "dark": "#ffffff2e",
+  "light": "#0000002e",
+  "hcDark": "#000000",
+  "hcLight": "#292929"
+ },
+ "titleBar.activeBackground": {
+  "dark": "#3C3C3C",
+  "light": "#DDDDDD",
+  "hcDark": "#000000",
+  "hcLight": "#FFFFFF"
+ },
+ "titleBar.activeForeground": {
+  "dark": "#CCCCCC",
+  "light": "#333333",
+  "hcDark": "#FFFFFF",
+  "hcLight": "#292929"
+ },
+ "titleBar.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "titleBar.inactiveBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "titleBar.activeBackground",
+   "factor": 0.6
+  },
+  "light": {
+   "op": "transparent",
+   "value": "titleBar.activeBackground",
+   "factor": 0.6
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "titleBar.inactiveForeground": {
+  "dark": {
+   "op": "transparent",
+   "value": "titleBar.activeForeground",
+   "factor": 0.6
+  },
+  "light": {
+   "op": "transparent",
+   "value": "titleBar.activeForeground",
+   "factor": 0.6
+  },
+  "hcDark": null,
+  "hcLight": "#292929"
+ },
+ "toolbar.activeBackground": {
+  "dark": {
+   "op": "lighten",
+   "value": "toolbar.hoverBackground",
+   "factor": 0.1
+  },
+  "light": {
+   "op": "darken",
+   "value": "toolbar.hoverBackground",
+   "factor": 0.1
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "toolbar.hoverBackground": {
+  "dark": "#5a5d5e50",
+  "light": "#b8b8b850",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "toolbar.hoverOutline": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastActiveBorder",
+  "hcLight": "contrastActiveBorder"
+ },
+ "tree.inactiveIndentGuidesStroke": {
+  "dark": {
+   "op": "transparent",
+   "value": "tree.indentGuidesStroke",
+   "factor": 0.4
+  },
+  "light": {
+   "op": "transparent",
+   "value": "tree.indentGuidesStroke",
+   "factor": 0.4
+  },
+  "hcDark": {
+   "op": "transparent",
+   "value": "tree.indentGuidesStroke",
+   "factor": 0.4
+  },
+  "hcLight": {
+   "op": "transparent",
+   "value": "tree.indentGuidesStroke",
+   "factor": 0.4
+  }
+ },
+ "tree.indentGuidesStroke": {
+  "dark": "#585858",
+  "light": "#a9a9a9",
+  "hcDark": "#a9a9a9",
+  "hcLight": "#a5a5a5"
+ },
+ "tree.tableColumnsBorder": {
+  "dark": "#CCCCCC20",
+  "light": "#61616120",
+  "hcDark": null,
+  "hcLight": null
+ },
+ "tree.tableOddRowsBackground": {
+  "dark": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.04
+  },
+  "light": {
+   "op": "transparent",
+   "value": "foreground",
+   "factor": 0.04
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "widget.border": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "widget.shadow": {
+  "dark": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.36
+  },
+  "light": {
+   "op": "transparent",
+   "value": "#000000",
+   "factor": 0.16
+  },
+  "hcDark": null,
+  "hcLight": null
+ },
+ "window.activeBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ },
+ "window.inactiveBorder": {
+  "dark": null,
+  "light": null,
+  "hcDark": "contrastBorder",
+  "hcLight": "contrastBorder"
+ }
+}

@@ -6,6 +6,7 @@ mod lsp;
 mod menu;
 mod search;
 mod settings;
+mod themes;
 mod watcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -46,6 +47,8 @@ pub fn run() {
             search::search_workspace,
             settings::settings_paths,
             settings::read_settings,
+            themes::list_color_themes,
+            themes::read_theme_file,
             watcher::watch_workspace,
         ])
         .build(tauri::generate_context!())

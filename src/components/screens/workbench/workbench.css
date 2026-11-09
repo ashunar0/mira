@@ -1,36 +1,8 @@
-/* 色は Kanagawa Dragon の色を役割ごとに当てる。寸法は VS Code の各 Part の定数に合わせる */
-:root {
-  color-scheme: dark;
-  --bg-chrome: #12120f;
-  --bg-editor: #181616;
-  --bg-input: #0d0c0c;
-  --bg-code: #282727;
-  --border: #282727;
-  --border-strong: #393836;
-  --fg: #c5c9c5;
-  --fg-muted: #a6a69c;
-  --fg-active: #e4e7e4;
-  --accent: #8ba4b0;
-  --link: #7fb4ca;
-  --button: #2d4f67;
-  --button-hover: #223249;
-  --error: #c34043;
-  --error-bg: #43242b;
-  --match: #2d4f67;
-  --list-hover: #1d1c19;
-  --list-active-selection: #223249;
-  --list-inactive-selection: #282727;
-  --toolbar-hover: #39383680;
-  --gutter-added: #76946a;
-  --gutter-modified: #dca561;
-  --gutter-removed: #c34043;
-  --git-modified: #c4b28a;
-  --git-added: #87a987;
-  --git-untracked: #87a987;
-  --git-renamed: #87a987;
-  --git-deleted: #c4746e;
-  --git-conflicted: #e46876;
-}
+/*
+ * 色は VS Code と同じく、テーマの色を --vscode-<色の名前> の変数で受け取る（infrastructure/theme/workbenchColors.ts）。
+ * テーマにない色は VS Code の既定値で埋まる。それでも決まらない枠線などは、VS Code と同じく線を出さない。
+ * 寸法は VS Code の各 Part の定数に合わせる
+ */
 
 * {
   box-sizing: border-box;
@@ -46,8 +18,8 @@ body,
 }
 
 body {
-  background: var(--bg-chrome);
-  color: var(--fg);
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
   font: 13px / 1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   user-select: none;
   -webkit-user-select: none;
@@ -85,8 +57,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  background: var(--bg-chrome);
-  border-bottom: 1px solid var(--border);
+  color: var(--vscode-titleBar-activeForeground);
+  background: var(--vscode-titleBar-activeBackground);
+  border-bottom: 1px solid var(--vscode-titleBar-border, transparent);
   padding: 0 8px 0 78px; /* 左は信号機ボタンの分 */
 }
 
@@ -116,7 +89,7 @@ button {
 }
 
 .wb-icon-button:hover {
-  background: var(--toolbar-hover);
+  background: var(--vscode-toolbar-hoverBackground);
 }
 
 .wb-icon-button .codicon {
@@ -129,7 +102,7 @@ button {
   display: flex;
   height: 35px;
   padding: 0 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--vscode-sideBarTitle-border, transparent);
 }
 
 .wb-activity-item {
@@ -139,12 +112,12 @@ button {
   justify-content: center;
   width: 28px;
   height: 100%;
-  color: var(--fg-muted);
+  color: var(--vscode-activityBarTop-inactiveForeground);
 }
 
 .wb-activity-item:hover,
 .wb-activity-item[data-active="true"] {
-  color: var(--fg-active);
+  color: var(--vscode-activityBarTop-foreground);
 }
 
 .wb-activity-item[data-active="true"]::after {
@@ -152,7 +125,7 @@ button {
   position: absolute;
   inset: auto 3px 0;
   height: 1px;
-  background: currentColor;
+  background: var(--vscode-activityBarTop-activeBorder);
 }
 
 .wb-activity-item .codicon {
@@ -169,8 +142,9 @@ button {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--bg-chrome);
-  border-right: 1px solid var(--border);
+  color: var(--vscode-sideBar-foreground);
+  background: var(--vscode-sideBar-background);
+  border-right: 1px solid var(--vscode-sideBar-border, transparent);
 }
 
 .wb-sidebar-title {
@@ -180,6 +154,7 @@ button {
   line-height: 35px;
   font-size: 11px;
   text-transform: uppercase;
+  color: var(--vscode-sideBarTitle-foreground);
 }
 
 .wb-no-folder {
@@ -193,14 +168,14 @@ button {
 .wb-button {
   width: 100%;
   height: 26px;
-  color: var(--fg-active);
-  background: var(--button);
-  border: 1px solid #ffffff1a;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  border: 1px solid var(--vscode-button-border, transparent);
   border-radius: 2px;
 }
 
 .wb-button:hover {
-  background: var(--button-hover);
+  background: var(--vscode-button-hoverBackground);
 }
 
 .wb-explorer {
@@ -216,6 +191,8 @@ button {
   align-items: center;
   height: 22px;
   padding: 0 8px;
+  color: var(--vscode-sideBarSectionHeader-foreground);
+  background: var(--vscode-sideBarSectionHeader-background);
 }
 
 .wb-section-toggle {
@@ -266,16 +243,19 @@ button {
 }
 
 .wb-tree-row:hover {
-  background: var(--list-hover);
+  color: var(--vscode-list-hoverForeground);
+  background: var(--vscode-list-hoverBackground);
 }
 
 .wb-tree-row[aria-selected="true"] {
-  background: var(--list-inactive-selection);
+  color: var(--vscode-list-inactiveSelectionForeground);
+  background: var(--vscode-list-inactiveSelectionBackground);
 }
 
 .wb-tree:focus .wb-tree-row[aria-selected="true"] {
-  background: var(--list-active-selection);
-  outline: 1px solid var(--accent);
+  color: var(--vscode-list-activeSelectionForeground);
+  background: var(--vscode-list-activeSelectionBackground);
+  outline: 1px solid var(--vscode-list-focusOutline, transparent);
   outline-offset: -1px;
 }
 
@@ -312,12 +292,12 @@ button {
   opacity: 0.5;
 }
 
-[data-git="modified"] { --git-color: var(--git-modified); }
-[data-git="added"] { --git-color: var(--git-added); }
-[data-git="untracked"] { --git-color: var(--git-untracked); }
-[data-git="renamed"] { --git-color: var(--git-renamed); }
-[data-git="deleted"] { --git-color: var(--git-deleted); }
-[data-git="conflicted"] { --git-color: var(--git-conflicted); }
+[data-git="modified"] { --git-color: var(--vscode-gitDecoration-modifiedResourceForeground); }
+[data-git="added"] { --git-color: var(--vscode-gitDecoration-addedResourceForeground); }
+[data-git="untracked"] { --git-color: var(--vscode-gitDecoration-untrackedResourceForeground); }
+[data-git="renamed"] { --git-color: var(--vscode-gitDecoration-renamedResourceForeground); }
+[data-git="deleted"] { --git-color: var(--vscode-gitDecoration-deletedResourceForeground); }
+[data-git="conflicted"] { --git-color: var(--vscode-gitDecoration-conflictingResourceForeground); }
 
 .wb-name-input {
   position: relative;
@@ -330,17 +310,17 @@ button {
   width: 100%;
   height: 20px;
   padding: 0 3px;
-  color: var(--fg);
+  color: var(--vscode-input-foreground);
   font: inherit;
-  background: var(--bg-input);
-  border: 1px solid var(--accent);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-focusBorder);
   outline: none;
   user-select: text;
   -webkit-user-select: text;
 }
 
 .wb-name-input input[aria-invalid="true"] {
-  border-color: var(--error);
+  border-color: var(--vscode-inputValidation-errorBorder);
 }
 
 .wb-name-error {
@@ -353,15 +333,16 @@ button {
   font-size: 12px;
   line-height: 1.4;
   white-space: normal;
-  background: var(--error-bg);
-  border: 1px solid var(--error);
+  color: var(--vscode-inputValidation-errorForeground);
+  background: var(--vscode-inputValidation-errorBackground);
+  border: 1px solid var(--vscode-inputValidation-errorBorder);
   border-top: 0;
 }
 
 .wb-tree-message {
   height: 22px;
   line-height: 22px;
-  color: var(--fg-muted);
+  color: var(--vscode-descriptionForeground);
 }
 
 .wb-file-icon {
@@ -385,7 +366,7 @@ button {
 
 .wb-sash:hover,
 .wb-sash:active {
-  background: var(--accent);
+  background: var(--vscode-sash-hoverBorder);
 }
 
 /* Editor Area */
@@ -394,7 +375,7 @@ button {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--bg-editor);
+  background: var(--vscode-editor-background);
 }
 
 .wb-tabs-row {
@@ -408,12 +389,12 @@ button {
   align-items: center;
   gap: 4px;
   padding: 0 8px;
-  background: var(--bg-chrome);
-  box-shadow: inset 0 -1px 0 var(--border);
+  background: var(--vscode-editorGroupHeader-tabsBackground);
+  box-shadow: inset 0 -1px 0 var(--vscode-editorGroupHeader-tabsBorder, transparent);
 }
 
 .wb-tabs-actions .wb-icon-button[aria-pressed="true"] {
-  background: var(--toolbar-hover);
+  background: var(--vscode-toolbar-activeBackground);
 }
 
 .wb-tabs {
@@ -421,8 +402,8 @@ button {
   min-width: 0;
   display: flex;
   height: 35px;
-  background: var(--bg-chrome);
-  box-shadow: inset 0 -1px 0 var(--border);
+  background: var(--vscode-editorGroupHeader-tabsBackground);
+  box-shadow: inset 0 -1px 0 var(--vscode-editorGroupHeader-tabsBorder, transparent);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -439,21 +420,22 @@ button {
   min-width: 120px;
   height: 35px;
   padding-left: 10px;
-  color: var(--fg-muted);
-  background: var(--bg-chrome);
-  border-right: 1px solid var(--border);
-  box-shadow: inset 0 -1px 0 var(--border);
+  color: var(--vscode-tab-inactiveForeground);
+  background: var(--vscode-tab-inactiveBackground);
+  border-right: 1px solid var(--vscode-tab-border, transparent);
+  box-shadow: inset 0 -1px 0 var(--vscode-editorGroupHeader-tabsBorder, transparent);
   white-space: nowrap;
   cursor: pointer;
 }
 
 .wb-tab:hover {
-  background: var(--bg-editor);
+  color: var(--vscode-tab-hoverForeground, var(--vscode-tab-inactiveForeground));
+  background: var(--vscode-tab-hoverBackground, var(--vscode-tab-inactiveBackground));
 }
 
 .wb-tab[aria-selected="true"] {
-  color: var(--fg-active);
-  background: var(--bg-editor);
+  color: var(--vscode-tab-activeForeground);
+  background: var(--vscode-tab-activeBackground);
   box-shadow: none;
 }
 
@@ -462,7 +444,7 @@ button {
   position: absolute;
   inset: 0 0 auto;
   height: 1px;
-  background: var(--accent);
+  background: var(--vscode-tab-activeBorderTop, transparent);
 }
 
 .wb-tab[data-preview="true"] .wb-tab-label {
@@ -497,7 +479,7 @@ button {
 }
 
 .wb-tab-close:hover {
-  background: var(--toolbar-hover);
+  background: var(--vscode-toolbar-hoverBackground);
 }
 
 .wb-tab:hover .wb-tab-close,
@@ -527,8 +509,8 @@ button {
   align-items: center;
   height: 22px;
   padding-left: 12px;
-  color: var(--fg-muted);
-  background: var(--bg-editor);
+  color: var(--vscode-breadcrumb-foreground);
+  background: var(--vscode-breadcrumb-background);
   font-size: 12px;
   overflow: hidden;
   white-space: nowrap;
@@ -564,7 +546,7 @@ button {
   justify-content: center;
   padding: 20px;
   text-align: center;
-  color: var(--fg-muted);
+  color: var(--vscode-descriptionForeground);
 }
 
 .wb-watermark dl {
@@ -591,11 +573,12 @@ button {
   font: inherit;
   font-size: 11px;
   text-align: center;
-  background: #8080802b;
-  border: 1px solid #33333399;
-  border-bottom-color: #44444499;
+  color: var(--vscode-keybindingLabel-foreground);
+  background: var(--vscode-keybindingLabel-background);
+  border: 1px solid var(--vscode-keybindingLabel-border, transparent);
+  border-bottom-color: var(--vscode-keybindingLabel-bottomBorder, transparent);
   border-radius: 3px;
-  box-shadow: inset 0 -1px 0 #0000005c;
+  box-shadow: inset 0 -1px 0 var(--vscode-widget-shadow, transparent);
 }
 
 /* Status Bar */
@@ -606,14 +589,16 @@ button {
   padding: 0 8px;
   font-size: 12px;
   line-height: 21px;
-  background: var(--bg-chrome);
-  border-top: 1px solid var(--border);
+  color: var(--vscode-statusBar-foreground);
+  background: var(--vscode-statusBar-background);
+  border-top: 1px solid var(--vscode-statusBar-border, transparent);
   overflow: hidden;
   white-space: nowrap;
 }
 
 .wb-statusbar[data-no-folder="true"] {
-  background: var(--bg-editor);
+  color: var(--vscode-statusBar-noFolderForeground);
+  background: var(--vscode-statusBar-noFolderBackground);
 }
 
 .wb-status-group {
@@ -638,12 +623,12 @@ button {
 /* diff で、片側にしか行がない部分の反対側。斜線をやめて背景を少し沈める */
 .monaco-editor .diagonal-fill {
   background-image: none;
-  background-color: var(--bg-chrome);
+  background-color: var(--vscode-editorGroupHeader-tabsBackground);
 }
 
 /* diff で色がついた行は、行番号も白くして目立たせる */
 .monaco-diff-editor .margin-view-overlays > div:has(.gutter-insert, .gutter-delete) .line-numbers {
-  color: var(--fg-active);
+  color: var(--vscode-editorLineNumber-activeForeground);
 }
 
 /* 行番号の右の、最後のコミットから変わった行の印 */
@@ -654,11 +639,11 @@ button {
 }
 
 .monaco-editor .margin-view-overlays .wb-gutter-added {
-  background: var(--gutter-added);
+  background: var(--vscode-editorGutter-addedBackground);
 }
 
 .monaco-editor .margin-view-overlays .wb-gutter-modified {
-  background: var(--gutter-modified);
+  background: var(--vscode-editorGutter-modifiedBackground);
 }
 
 /* 削除は行がないので、消えた位置の行の下端に小さな三角を出す */
@@ -669,14 +654,14 @@ button {
   bottom: -4px;
   border-top: 4px solid transparent;
   border-bottom: 4px solid transparent;
-  border-left: 5px solid var(--gutter-removed);
+  border-left: 5px solid var(--vscode-editorGutter-deletedBackground);
 }
 
 /* Markdown プレビュー */
 .wb-markdown {
   overflow-y: auto;
   outline: none;
-  background: var(--bg-editor);
+  background: var(--vscode-editor-background);
   cursor: auto;
   user-select: text;
   -webkit-user-select: text;
@@ -686,7 +671,7 @@ button {
   max-width: 760px;
   margin: 0 auto;
   padding: 32px 40px 80px;
-  color: var(--fg);
+  color: var(--vscode-editor-foreground);
   font-size: 14px;
   line-height: 2;
   letter-spacing: 0.04em;
@@ -708,7 +693,7 @@ button {
 .wb-markdown-body h2 {
   padding-bottom: 0.3em;
   font-size: 1.4em;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--vscode-textSeparator-foreground);
 }
 
 .wb-markdown-body h3 {
@@ -724,7 +709,7 @@ button {
 }
 
 .wb-markdown-body a {
-  color: var(--link);
+  color: var(--vscode-textLink-foreground);
   text-decoration: none;
 }
 
@@ -736,7 +721,8 @@ button {
   padding: 0.15em 0.35em;
   font: 0.9em Menlo, Monaco, "Courier New", monospace;
   letter-spacing: 0;
-  background: var(--bg-code);
+  color: var(--vscode-textPreformat-foreground);
+  background: var(--vscode-textPreformat-background);
   border-radius: 4px;
 }
 
@@ -744,7 +730,7 @@ button {
   padding: 12px 16px;
   overflow-x: auto;
   line-height: 1.5;
-  background: var(--bg-chrome);
+  background: var(--vscode-textCodeBlock-background);
   border-radius: 6px;
 }
 
@@ -755,8 +741,8 @@ button {
 
 .wb-markdown-body blockquote {
   padding-left: 1em;
-  color: var(--fg-muted);
-  border-left: 3px solid var(--border-strong);
+  background: var(--vscode-textBlockQuote-background);
+  border-left: 3px solid var(--vscode-textBlockQuote-border);
 }
 
 .wb-markdown-body img {
@@ -769,13 +755,13 @@ button {
 
 .wb-markdown-body :is(th, td) {
   padding: 4px 12px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--vscode-textSeparator-foreground);
 }
 
 .wb-markdown-body hr {
   margin: 2em 0;
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--vscode-textSeparator-foreground);
 }
 
 /* 全文検索 */
@@ -808,10 +794,10 @@ button {
   width: 100%;
   height: 26px;
   padding: 0 52px 0 6px;
-  color: var(--fg);
+  color: var(--vscode-input-foreground);
   font: inherit;
-  background: var(--bg-input);
-  border: 1px solid var(--border-strong);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
   border-radius: 2px;
   outline: none;
   user-select: text;
@@ -819,11 +805,11 @@ button {
 }
 
 .wb-search-input:focus {
-  border-color: var(--accent);
+  border-color: var(--vscode-focusBorder);
 }
 
 .wb-search-input[aria-invalid="true"] {
-  border-color: var(--error);
+  border-color: var(--vscode-inputValidation-errorBorder);
 }
 
 .wb-search-toggles {
@@ -840,18 +826,19 @@ button {
   justify-content: center;
   width: 20px;
   height: 20px;
-  color: var(--fg);
+  color: var(--vscode-input-foreground);
   border: 1px solid transparent;
   border-radius: 3px;
 }
 
 .wb-search-toggle:hover {
-  background: var(--toolbar-hover);
+  background: var(--vscode-inputOption-hoverBackground);
 }
 
 .wb-search-toggle[aria-pressed="true"] {
-  background: var(--match);
-  border-color: var(--accent);
+  color: var(--vscode-inputOption-activeForeground);
+  background: var(--vscode-inputOption-activeBackground);
+  border-color: var(--vscode-inputOption-activeBorder, transparent);
 }
 
 .wb-search-toggle .codicon {
@@ -861,7 +848,7 @@ button {
 .wb-search-summary {
   flex: none;
   padding: 0 12px 6px;
-  color: var(--fg-muted);
+  color: var(--vscode-descriptionForeground);
   font-size: 12px;
 }
 
@@ -887,12 +874,14 @@ button {
 
 .wb-search-file:hover,
 .wb-search-match:hover {
-  background: var(--list-hover);
+  color: var(--vscode-list-hoverForeground);
+  background: var(--vscode-list-hoverBackground);
 }
 
 .wb-search-file[aria-selected="true"],
 .wb-search-match[aria-selected="true"] {
-  background: var(--list-inactive-selection);
+  color: var(--vscode-list-inactiveSelectionForeground);
+  background: var(--vscode-list-inactiveSelectionBackground);
 }
 
 .wb-search-results:focus {
@@ -900,8 +889,9 @@ button {
 }
 
 .wb-search-results:focus [aria-selected="true"] {
-  background: var(--list-active-selection);
-  outline: 1px solid var(--accent);
+  color: var(--vscode-list-activeSelectionForeground);
+  background: var(--vscode-list-activeSelectionBackground);
+  outline: 1px solid var(--vscode-list-focusOutline, transparent);
   outline-offset: -1px;
 }
 
@@ -917,7 +907,7 @@ button {
   min-width: 0;
   margin-left: 6px;
   overflow: hidden;
-  color: var(--fg-muted);
+  color: var(--vscode-descriptionForeground);
   font-size: 12px;
   text-overflow: ellipsis;
 }
@@ -925,7 +915,7 @@ button {
 .wb-search-file-count {
   flex: none;
   margin: 0 8px 0 8px;
-  color: var(--fg-muted);
+  color: var(--vscode-descriptionForeground);
   font-size: 11px;
 }
 
@@ -937,5 +927,5 @@ button {
 
 .wb-search-match mark {
   color: inherit;
-  background: var(--match);
+  background: var(--vscode-editor-findMatchHighlightBackground);
 }

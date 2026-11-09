@@ -1,5 +1,4 @@
 import type { ThemeRegistrationRaw } from "shiki";
-import kanagawaDragon from "./kanagawa-dragon-color-theme.json";
 
 /**
  * 言語サーバーが返す「意味に基づく色分け」（semantic tokens）の色を、VS Code と同じ手順で決める。
@@ -14,11 +13,10 @@ import kanagawaDragon from "./kanagawa-dragon-color-theme.json";
 
 /** 色と文字の形。決まらなかったもの（undefined）は、TextMate 文法の側のまま */
 type Style = { foreground?: string; bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean };
-type TokenColorRule = { scope?: string | string[]; settings: { foreground?: string; fontStyle?: string } };
-type SemanticColor = string | { foreground?: string; fontStyle?: string; bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean };
-
-const tokenColors = kanagawaDragon.tokenColors as TokenColorRule[];
-const semanticTokenColors = kanagawaDragon.semanticTokenColors as Record<string, SemanticColor>;
+export type TokenColorRule = { scope?: string | string[]; settings: { foreground?: string; fontStyle?: string } };
+export type SemanticColor =
+  | string
+  | { foreground?: string; fontStyle?: string; bold?: boolean; italic?: boolean; underline?: boolean; strikethrough?: boolean };
 
 const FONT_FLAGS = ["bold", "italic", "underline", "strikethrough"] as const;
 
@@ -133,7 +131,7 @@ function toStyle(foreground: string | undefined, fontStyle: string | undefined, 
  * TextMate のテーマと同じく、分類の頭から最も長く一致するルールの色と形。同じ長さなら後ろのルールが勝つ。
  * 色と形は別々に決める
  */
-function textMateStyle(scope: string): Style | null {
+function textMateStyle(tokenColors: TokenColorRule[], scope: string): Style | null {
   let foreground: { length: number; value: string } | null = null;
   let fontStyle: { length: number; value: string } | null = null;
   for (const rule of tokenColors) {
@@ -185,7 +183,10 @@ function matchScore(selector: Selector, type: string, modifiers: string[], langu
   return score + selector.modifiers.length * 100;
 }
 
-const THEME_RULES = Object.entries(semanticTokenColors).map(([selector, color]) => ({
+type ThemeRule = { selector: Selector; style: Style };
+
+const toThemeRules = (semanticTokenColors: Record<string, SemanticColor>): ThemeRule[] =>
+  Object.entries(semanticTokenColors).map(([selector, color]) => ({
   selector: parseSelector(selector),
   style:
     typeof color === "string"
@@ -204,7 +205,7 @@ const DEFAULT_RULES = TEXTMATE_SCOPES.map(([selector, scopes]) => ({ selector: p
  * VS Code の手順（ColorThemeData.getTokenStyle）。色と形の 4 つを、それぞれ点数の最も高いルールで決める。
  * テーマの semanticTokenColors で決まったものはそのまま使い、決まらなかったものだけ TextMate の分類への読み替えで決める
  */
-function resolveStyle(type: string, modifiers: string[], language: string): Style {
+function resolveStyle(theme: SemanticTheme, type: string, modifiers: string[], language: string): Style {
   const result: Style = {};
   const scores: Record<keyof Style, number> = { foreground: -1, bold: -1, italic: -1, underline: -1, strikethrough: -1 };
   const apply = (score: number, style: Style) => {
@@ -215,7 +216,7 @@ function resolveStyle(type: string, modifiers: string[], language: string): Styl
       (result as Record<string, unknown>)[key] = value;
     }
   };
-  for (const rule of THEME_RULES) {
+  for (const rule of theme.rules) {
     const score = matchScore(rule.selector, type, modifiers, language);
     if (score >= 0) apply(score, rule.style);
   }
@@ -223,7 +224,7 @@ function resolveStyle(type: string, modifiers: string[], language: string): Styl
   for (const rule of DEFAULT_RULES) {
     const score = matchScore(rule.selector, type, modifiers, language);
     if (score < 0) continue;
-    const style = rule.scopes.map(textMateStyle).find((found) => found !== null);
+    const style = rule.scopes.map((scope) => textMateStyle(theme.tokenColors, scope)).find((found) => found !== null);
     if (style) apply(score, style);
   }
   return result;
@@ -240,40 +241,65 @@ const fontStyleOf = (style: Style) => FONT_FLAGS.filter((flag) => style[flag]).j
 const tokenName = (foreground: string, fontStyle: string) =>
   ["semantic", foreground, ...fontStyle.split(" ").filter(Boolean)].join(".");
 
+type SemanticTheme = {
+  /** false なら意味に基づく色分けをしない（テーマの semanticHighlighting。VS Code の既定の configuredByTheme と同じ） */
+  enabled: boolean;
+  tokenColors: TokenColorRule[];
+  rules: ThemeRule[];
+  legend: string[];
+  cache: Map<string, number | null>;
+};
+
+let current: SemanticTheme = { enabled: false, tokenColors: [], rules: [], legend: [], cache: new Map() };
+
 /**
- * 使いうる色はテーマにある色だけなので、色と形の組み合わせを先に全部並べて Monaco に渡す名前の一覧（legend）にする。
- * 色と形は別々のルールから来ることがある（rust-analyzer の書き換えられる変数は、テーマの変数の色に下線）
+ * テーマを差し替える。使いうる色はテーマにある色だけなので、色と形の組み合わせを先に全部並べて Monaco に渡す名前の
+ * 一覧（legend）にする。色と形は別々のルールから来ることがある（rust-analyzer の書き換えられる変数は、テーマの変数の色に下線）。
+ * 戻り値はテーマに足すルール。TextMate 文法がこの名前の分類を出すことはないので、ほかの色には影響しない
  */
-const FOREGROUNDS: string[] = [
-  ...new Set(
-    [...tokenColors.map((rule) => rule.settings.foreground), ...THEME_RULES.map((rule) => rule.style.foreground)]
-      .filter((color): color is string => color !== undefined)
-      .map(normalize),
-  ),
-];
+export function setSemanticTheme(theme: {
+  enabled: boolean;
+  tokenColors: TokenColorRule[];
+  semanticTokenColors: Record<string, SemanticColor>;
+}): ThemeRegistrationRaw["settings"] {
+  const rules = toThemeRules(theme.semanticTokenColors);
+  const foregrounds = [
+    ...new Set(
+      [...theme.tokenColors.map((rule) => rule.settings?.foreground), ...rules.map((rule) => rule.style.foreground)]
+        .filter((color): color is string => typeof color === "string")
+        .map(normalize),
+    ),
+  ];
+  const styles = foregrounds.flatMap((foreground) => FONT_STYLES.map((fontStyle) => ({ foreground, fontStyle })));
+  current = {
+    enabled: theme.enabled,
+    tokenColors: theme.tokenColors,
+    rules,
+    legend: styles.map((style) => tokenName(style.foreground, style.fontStyle)),
+    cache: new Map(),
+  };
+  return styles.map((style) => ({
+    scope: tokenName(style.foreground, style.fontStyle),
+    settings: { foreground: `#${style.foreground}`, fontStyle: style.fontStyle },
+  }));
+}
 
-const STYLES = FOREGROUNDS.flatMap((foreground) => FONT_STYLES.map((fontStyle) => ({ foreground, fontStyle })));
-
-export const SEMANTIC_TOKEN_LEGEND: string[] = STYLES.map((style) => tokenName(style.foreground, style.fontStyle));
-
-/** テーマに足すルール。TextMate 文法がこの名前の分類を出すことはないので、ほかの色には影響しない */
-export const SEMANTIC_THEME_SETTINGS: ThemeRegistrationRaw["settings"] = STYLES.map((style) => ({
-  scope: tokenName(style.foreground, style.fontStyle),
-  settings: { foreground: `#${style.foreground}`, fontStyle: style.fontStyle },
-}));
-
-const cache = new Map<string, number | null>();
+/** Monaco に渡す名前の一覧。テーマを替えると変わる（Monaco はテーマが替わると色分けを聞き直す） */
+export function semanticTokenLegend(): string[] {
+  return current.legend;
+}
 
 /**
- * 種類と修飾に付ける色の、SEMANTIC_TOKEN_LEGEND での位置。色を変えないなら null。
+ * 種類と修飾に付ける色の、semanticTokenLegend() での位置。色を変えないなら null。
  * 言語は VS Code の言語の ID（rust、typescript など）。
  * Monaco は色の決まらない部分だけ TextMate 文法の側を残す、ということができないので、色が決まらなければ形も付けない
  */
 export function semanticStyleIndex(type: string, modifiers: string[], language: string): number | null {
+  if (!current.enabled) return null;
   const key = [language, type, ...modifiers].join(".");
-  if (!cache.has(key)) {
-    const style = resolveStyle(type, modifiers, language);
-    cache.set(key, style.foreground ? SEMANTIC_TOKEN_LEGEND.indexOf(tokenName(style.foreground, fontStyleOf(style))) : null);
+  if (!current.cache.has(key)) {
+    const style = resolveStyle(current, type, modifiers, language);
+    current.cache.set(key, style.foreground ? current.legend.indexOf(tokenName(style.foreground, fontStyleOf(style))) : null);
   }
-  return cache.get(key) ?? null;
+  return current.cache.get(key) ?? null;
 }

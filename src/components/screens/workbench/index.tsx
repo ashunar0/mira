@@ -4,10 +4,13 @@ import { useWorkspaceWatcher } from "../../../features/files/watcher";
 import { useLanguageServer } from "../../../features/lsp/useLanguageServer";
 import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { useRefreshSearch } from "../../../features/search/queries";
-import { useSettingsPathsQuery, useSettingsWatcher } from "../../../features/settings/queries";
+import { colorCustomizationsFor, colorThemeOf } from "../../../features/settings/lib/settings";
+import { useSettingsPathsQuery, useSettingsQuery, useSettingsWatcher } from "../../../features/settings/queries";
+import { useColorThemeQuery } from "../../../features/themes/queries";
 import type { SearchMatch } from "../../../features/search/type";
 import { closeWindow, onFolderRequested, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import { type monaco, treatAsJsonc } from "../../../infrastructure/monaco/setup";
+import { BUNDLED_THEME, applyColorTheme } from "../../../infrastructure/monaco/theme";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
 import { ActivityBar, type SidebarView } from "./activityBar";
 import { Breadcrumbs } from "./breadcrumbs";
@@ -72,6 +75,14 @@ export function Workbench() {
     const paths = [settingsPaths?.mira, settingsPaths?.vscode].filter((path) => path != null);
     editorTabs.handleFileChanges({ paths, removed: [], needsRescan: false, gitChanged: false });
   });
+  // テーマは読み終えてから替える。見つからなければ mira に入れてあるもの
+  const settings = useSettingsQuery();
+  const themeId = colorThemeOf(settings);
+  const colorTheme = useColorThemeQuery(themeId);
+  useEffect(() => {
+    if (colorTheme !== undefined) applyColorTheme(colorTheme ?? BUNDLED_THEME, colorCustomizationsFor(settings, themeId));
+  }, [colorTheme, settings, themeId]);
+
   const openSettings = () => {
     if (!settingsPath) return;
     setWantedView("editor");

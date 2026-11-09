@@ -12,11 +12,11 @@
   flex-direction: column;
   width: min(600px, calc(100vw - 40px));
   transform: translateX(-50%);
-  color: var(--fg);
-  background: var(--bg-chrome);
-  border: 1px solid var(--border-strong);
+  color: var(--vscode-quickInput-foreground);
+  background: var(--vscode-quickInput-background);
+  border: 1px solid var(--vscode-widget-border, transparent);
   border-radius: 6px;
-  box-shadow: 0 8px 24px #00000080;
+  box-shadow: 0 8px 24px var(--vscode-widget-shadow, transparent);
   overflow: hidden;
 }
 
@@ -27,8 +27,9 @@
   padding: 0 6px;
   color: inherit;
   font: inherit;
-  background: var(--bg-input);
-  border: 1px solid var(--border-strong);
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
   border-radius: 2px;
   outline: none;
   user-select: text;
@@ -36,11 +37,11 @@
 }
 
 .qi-input:focus {
-  border-color: var(--accent);
+  border-color: var(--vscode-focusBorder);
 }
 
 .qi-input::placeholder {
-  color: var(--fg-muted);
+  color: var(--vscode-input-placeholderForeground);
 }
 
 .qi-list {
@@ -60,12 +61,12 @@
 }
 
 .qi-row:hover {
-  background: var(--list-hover);
+  background: var(--vscode-list-hoverBackground);
 }
 
 .qi-row[aria-selected="true"] {
-  color: var(--fg-active);
-  background: var(--list-active-selection);
+  color: var(--vscode-quickInputList-focusForeground);
+  background: var(--vscode-quickInputList-focusBackground);
 }
 
 .qi-label {
@@ -80,17 +81,17 @@
   min-width: 0;
   margin-left: 8px;
   font-size: 12px;
-  color: var(--fg-muted);
+  color: var(--vscode-descriptionForeground);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .qi-row[aria-selected="true"] .qi-description {
-  color: var(--fg);
+  color: var(--vscode-quickInputList-focusForeground);
 }
 
 .qi-match {
-  color: var(--link);
+  color: var(--vscode-list-highlightForeground);
   font-weight: 600;
 }
 
@@ -109,8 +110,9 @@
   font-size: 11px;
   line-height: 16px;
   text-align: center;
-  background: #8080802b;
-  border: 1px solid #33333399;
+  color: var(--vscode-keybindingLabel-foreground);
+  background: var(--vscode-keybindingLabel-background);
+  border: 1px solid var(--vscode-keybindingLabel-border, transparent);
   border-radius: 3px;
 }
 
@@ -118,5 +120,5 @@
   height: 22px;
   padding: 0 6px;
   line-height: 22px;
-  color: var(--fg-muted);
+  color: var(--vscode-descriptionForeground);
 }

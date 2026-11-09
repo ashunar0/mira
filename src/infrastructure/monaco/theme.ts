@@ -1,101 +1,53 @@
-import type { ThemeRegistrationRaw } from "shiki";
+import { type ThemeKind, applyCssVariables, resolveWorkbenchColors, themeKindOf } from "../theme/workbenchColors";
 import kanagawaDragon from "./kanagawa-dragon-color-theme.json";
-import { SEMANTIC_THEME_SETTINGS } from "./semanticTokenStyles";
+import { type SemanticColor, type TokenColorRule, setSemanticTheme } from "./semanticTokenStyles";
+import { switchCodeTheme } from "./syntaxHighlighting";
 
-export const THEME_NAME = "kanagawa-dragon";
-
-// Kanagawa Dragon（metaphore.kanagawa-vscode-color-theme、MIT。ライセンスは同じフォルダの LICENSE.txt）。
-// コードの色（tokenColors）はテーマの JSON をそのまま使い、VS Code と同じ TextMate 文法で当てる（syntaxHighlighting）。
-// エディタの色はテーマのうち Monaco に効くものに、diff は控えめな濃さを保って色味だけ合わせたもの
-const EDITOR_COLORS: Record<string, string> = {
-  "diffEditor.insertedLineBackground": "#76946A0D",
-  "diffEditor.insertedTextBackground": "#76946A26",
-  "diffEditor.removedLineBackground": "#C340430D",
-  "diffEditor.removedTextBackground": "#C3404326",
-  "diffEditorGutter.insertedLineBackground": "#76946A4D",
-  "diffEditorGutter.removedLineBackground": "#C340434D",
-  "editor.background": "#181616",
-  "editor.findMatchBackground": "#2D4F67",
-  "editor.findMatchBorder": "#FF9E3B",
-  "editor.findMatchHighlightBackground": "#2D4F6780",
-  "editor.foreground": "#C5C9C5",
-  "editor.lineHighlightBackground": "#393836",
-  "editor.selectionBackground": "#223249",
-  "editor.selectionHighlightBackground": "#39383680",
-  "editor.selectionHighlightBorder": "#625E5A",
-  "editor.wordHighlightBackground": "#3938364D",
-  "editor.wordHighlightBorder": "#625E5A",
-  "editor.wordHighlightStrongBackground": "#3938364D",
-  "editor.wordHighlightStrongBorder": "#625E5A",
-  "editorBracketHighlight.foreground1": "#8992A7",
-  "editorBracketHighlight.foreground2": "#B6927B",
-  "editorBracketHighlight.foreground3": "#8BA4B0",
-  "editorBracketHighlight.foreground4": "#A292A3",
-  "editorBracketHighlight.foreground5": "#C4B28A",
-  "editorBracketHighlight.foreground6": "#8EA4A2",
-  "editorBracketHighlight.unexpectedBracket.foreground": "#C4746E",
-  "editorBracketMatch.background": "#0D0C0C",
-  "editorBracketMatch.border": "#625E5A",
-  "editorBracketPairGuide.activeBackground1": "#8992A7",
-  "editorBracketPairGuide.activeBackground2": "#B6927B",
-  "editorBracketPairGuide.activeBackground3": "#8BA4B0",
-  "editorBracketPairGuide.activeBackground4": "#A292A3",
-  "editorBracketPairGuide.activeBackground5": "#C4B28A",
-  "editorBracketPairGuide.activeBackground6": "#8EA4A2",
-  "editorCursor.background": "#181616",
-  "editorCursor.foreground": "#C5C9C5",
-  "editorError.foreground": "#E82424",
-  "editorGroup.border": "#0D0C0C",
-  "editorGutter.addedBackground": "#76946A",
-  "editorGutter.deletedBackground": "#C34043",
-  "editorGutter.modifiedBackground": "#DCA561",
-  "editorHoverWidget.background": "#181616",
-  "editorHoverWidget.border": "#282727",
-  "editorHoverWidget.highlightForeground": "#658594",
-  "editorIndentGuide.activeBackground1": "#393836",
-  "editorIndentGuide.background1": "#282727",
-  "editorLineNumber.activeForeground": "#FFA066",
-  "editorLineNumber.foreground": "#625E5A",
-  "editorOverviewRuler.border": "#0D0C0C",
-  "editorSuggestWidget.background": "#223249",
-  "editorSuggestWidget.border": "#223249",
-  "editorSuggestWidget.selectedBackground": "#2D4F67",
-  "editorWarning.foreground": "#FF9E3B",
-  "editorWhitespace.foreground": "#181616",
-  "editorWidget.background": "#181616",
-  focusBorder: "#223249",
-  foreground: "#C5C9C5",
-  "input.background": "#0D0C0C",
-  "list.activeSelectionBackground": "#393836",
-  "list.activeSelectionForeground": "#C5C9C5",
-  "list.focusBackground": "#282727",
-  "list.focusForeground": "#C5C9C5",
-  "list.highlightForeground": "#8BA4B0",
-  "list.hoverBackground": "#2D4F6799",
-  "list.hoverForeground": "#C5C9C5",
-  "list.inactiveSelectionBackground": "#282727",
-  "list.inactiveSelectionForeground": "#C5C9C5",
-  "list.warningForeground": "#FF9E3B",
-  "menu.background": "#393836",
-  "menu.border": "#0D0C0C",
-  "menu.foreground": "#C5C9C5",
-  "menu.selectionBackground": "#0D0C0C",
-  "menu.selectionForeground": "#C5C9C5",
-  "menu.separatorBackground": "#625E5A",
-  "peekView.border": "#625E5A",
-  "peekViewEditor.background": "#282727",
-  "peekViewEditor.matchHighlightBackground": "#2D4F67",
-  "peekViewResult.background": "#393836",
-  "scrollbar.shadow": "#393836",
-  "scrollbarSlider.activeBackground": "#28272780",
-  "scrollbarSlider.background": "#625E5A66",
-  "scrollbarSlider.hoverBackground": "#625E5A80",
+/** VS Code のテーマのファイルを、include をたどって 1 つにまとめたもの */
+export type ColorThemeData = {
+  kind: ThemeKind;
+  colors: Record<string, string>;
+  tokenColors: TokenColorRule[];
+  semanticHighlighting: boolean;
+  semanticTokenColors: Record<string, SemanticColor>;
 };
 
-export const KANAGAWA_DRAGON: ThemeRegistrationRaw = {
-  name: THEME_NAME,
-  type: "dark",
-  // 意味に基づく色分けの色は後ろに足す（同じ色の TextMate の分類を先に見つけてもらうため）
-  settings: [...kanagawaDragon.tokenColors, ...SEMANTIC_THEME_SETTINGS],
-  colors: EDITOR_COLORS,
+/**
+ * 設定のテーマが見つからないとき（VS Code がない、テーマを消した）と、起動してテーマを読み終えるまでに使う。
+ * Kanagawa Dragon（metaphore.kanagawa-vscode-color-theme、MIT。ライセンスは同じフォルダの LICENSE.txt）
+ */
+export const BUNDLED_THEME: ColorThemeData = {
+  kind: themeKindOf("vs-dark"),
+  colors: kanagawaDragon.colors,
+  tokenColors: kanagawaDragon.tokenColors as TokenColorRule[],
+  semanticHighlighting: kanagawaDragon.semanticHighlighting,
+  semanticTokenColors: kanagawaDragon.semanticTokenColors as Record<string, SemanticColor>,
 };
+
+let applied: { theme: ColorThemeData; customColors: Record<string, string> } | null = null;
+
+/**
+ * テーマを画面とエディタに当てる。VS Code と同じく、テーマの colors にユーザーの colorCustomizations を重ね、
+ * 決まらない色は VS Code の既定値で埋める。画面には --vscode-* の変数で、エディタには Monaco のテーマで渡す
+ */
+export function applyColorTheme(theme: ColorThemeData, customColors: Record<string, string>): void {
+  if (applied?.theme === theme && JSON.stringify(applied.customColors) === JSON.stringify(customColors)) return;
+  applied = { theme, customColors };
+
+  const colors = resolveWorkbenchColors(theme.kind, { ...theme.colors, ...customColors });
+  applyCssVariables(colors);
+  // スクロールバーや入力欄など、ブラウザが描く部分の明るさ
+  document.documentElement.style.colorScheme = theme.kind === "light" || theme.kind === "hcLight" ? "light" : "dark";
+
+  const semanticSettings = setSemanticTheme({
+    enabled: theme.semanticHighlighting,
+    tokenColors: theme.tokenColors,
+    semanticTokenColors: theme.semanticTokenColors,
+  });
+  switchCodeTheme({
+    type: theme.kind === "light" || theme.kind === "hcLight" ? "light" : "dark",
+    // 意味に基づく色分けの色は後ろに足す（同じ色の TextMate の分類を先に見つけてもらうため）
+    settings: [...theme.tokenColors, ...semanticSettings],
+    colors,
+  });
+}
