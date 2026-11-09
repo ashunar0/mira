@@ -1,0 +1,14 @@
+/* 変換中（composition.ts）。Monaco が重ねる入力欄を見えなくし、行の中の文字とカーソルを見せる */
+.monaco-editor.mira-composing .inputarea.ime-input {
+  opacity: 0;
+}
+
+/* Monaco は変換中、カーソルが 2 つにならないよう自分のカーソルを style="visibility: hidden" で消す */
+.monaco-editor.mira-composing .cursors-layer .cursor {
+  visibility: inherit !important;
+}
+
+/* VS Code の変換中の下線（nativeEditContext.css の edit-context-composition-secondary）と同じ */
+.monaco-editor .mira-composition {
+  border-bottom: 1px solid var(--vscode-editor-compositionBorder);
+}

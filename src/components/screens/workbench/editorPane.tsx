@@ -2,6 +2,7 @@ import { type RefObject, useEffect, useRef } from "react";
 import { editorSettingsFor } from "../../../features/settings/lib/settings";
 import { useSettingsQuery } from "../../../features/settings/queries";
 import type { ObjectTree } from "../../../infrastructure/objectTree";
+import { matchCompositionToVSCode } from "../../../infrastructure/monaco/composition";
 import { EDITOR_OPTIONS, editorOptions, monaco, replaceOptions } from "../../../infrastructure/monaco/setup";
 import type { EditorStatus } from "./statusBar";
 import { useGitGutter } from "./useGitGutter";
@@ -63,6 +64,7 @@ export function EditorPane({ model, isHidden, gutterBaseText, revealRequest, foc
       editor.onDidChangeModelOptions(report),
       editor.onDidChangeModelContent(report),
       editor.onDidChangeModelLanguage(report),
+      matchCompositionToVSCode(editor),
     ];
     return () => {
       subscriptions.forEach((subscription) => subscription.dispose());

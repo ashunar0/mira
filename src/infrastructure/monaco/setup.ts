@@ -47,6 +47,12 @@ const DEFAULT_OPTIONS: ObjectTree = {
   stickyScroll: { enabled: true },
   // カーソルのある行は、行番号の色で分かる
   renderLineHighlight: "none",
+  // スクリーンリーダーはないものとする。VS Code は Electron が有無を調べて普段は「なし」になるが、Mira（WebKit）
+  // では Monaco が調べられず「不明」になり、入力用の隠れた textarea に 1 画面分の文章を入れる。すると日本語の変換中、
+  // その textarea が行の先頭から灰色の箱で見え、WebKit と Monaco が textarea のスクロールを取り合って文字が上下に
+  // 揺れる（microsoft/vscode#333909、monaco-editor#4796）。「なし」なら中身はカーソルの前の 1 語だけになる。
+  // スクリーンリーダーを使うときは、設定で editor.accessibilitySupport を "on" にする
+  accessibilitySupport: "off",
   // 言語サーバーの「意味に基づく色分け」を TextMate 文法の色に重ねる。VS Code と同じく、するかはテーマが決める
   // （semanticTokenStyles。Monaco 単体はテーマから読めないので、ここでは常に有効にしておく）
   "semanticHighlighting.enabled": true,

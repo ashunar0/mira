@@ -1,6 +1,7 @@
 import { type RefObject, useEffect, useRef } from "react";
 import { editorSettingsFor } from "../../../features/settings/lib/settings";
 import { useSettingsQuery } from "../../../features/settings/queries";
+import { matchCompositionToVSCode } from "../../../infrastructure/monaco/composition";
 import type { ObjectTree } from "../../../infrastructure/objectTree";
 import {
   DIFF_EDITOR_OPTIONS,
@@ -57,6 +58,7 @@ export function DiffPane({ model, originalText, focusRequest, editorRef, onStatu
       modified.onDidChangeCursorSelection(report),
       modified.onDidChangeModel(report),
       modified.onDidChangeModelContent(report),
+      matchCompositionToVSCode(modified),
     ];
     return () => {
       subscriptions.forEach((subscription) => subscription.dispose());
