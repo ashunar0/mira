@@ -4,9 +4,10 @@ import { useWorkspaceWatcher } from "../../../features/files/watcher";
 import { useLanguageServer } from "../../../features/lsp/useLanguageServer";
 import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { useRefreshSearch } from "../../../features/search/queries";
+import { useSettingsPathQuery, useSettingsWatcher } from "../../../features/settings/queries";
 import type { SearchMatch } from "../../../features/search/type";
 import { closeWindow, onFolderRequested, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
-import type { monaco } from "../../../infrastructure/monaco/setup";
+import { type monaco, treatAsJsonc } from "../../../infrastructure/monaco/setup";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
 import { ActivityBar, type SidebarView } from "./activityBar";
 import { Breadcrumbs } from "./breadcrumbs";
@@ -60,6 +61,22 @@ export function Workbench() {
     void refreshGitStatus();
     void refreshSearch();
   });
+
+  const settingsPath = useSettingsPathQuery();
+  useEffect(() => {
+    if (settingsPath) treatAsJsonc(settingsPath);
+  }, [settingsPath]);
+  // 設定ファイルはフォルダの外にあるので、開いているタブはこちらの通知で読み直す
+  useSettingsWatcher(() => {
+    if (settingsPath) {
+      editorTabs.handleFileChanges({ paths: [settingsPath], removed: [], needsRescan: false, gitChanged: false });
+    }
+  });
+  const openSettings = () => {
+    if (!settingsPath) return;
+    setWantedView("editor");
+    void editorTabs.openFile(settingsPath, { pin: true });
+  };
 
   const canShowDiff = activeModel !== null && activeTab !== null && gitDecorations?.has(activeTab.path) === true;
   const { data: headText } = useHeadTextQuery(activeModel && activeTab ? activeTab.path : null);
@@ -141,6 +158,7 @@ export function Workbench() {
   const getCommands = (): Command[] => {
     const appCommands: Command[] = [
       { id: "open-folder", label: "File: Open Folder...", keybinding: ["⌘", "O"], run: () => void chooseFolder() },
+      { id: "open-settings", label: "Preferences: Open User Settings (JSON)", keybinding: ["⌘", ","], run: openSettings },
       { id: "save", label: "File: Save", keybinding: ["⌘", "S"], run: editorTabs.saveActive },
       { id: "close-tab", label: "View: Close Editor", keybinding: ["⌘", "W"], run: closeActiveOrWindow },
       { id: "toggle-sidebar", label: "View: Toggle Primary Side Bar Visibility", keybinding: ["⌘", "B"], run: toggleSidebar },
@@ -187,6 +205,7 @@ export function Workbench() {
     "find-in-files": findInFiles,
     "quick-open": () => setQuickOpenText(""),
     "command-palette": showCommands,
+    "open-settings": openSettings,
     quit: () => void closeWindow(),
   };
   useEffect(() => onNativeMenu((id) => menuHandlers.current[id]?.()), []);

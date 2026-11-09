@@ -5,6 +5,7 @@ mod launch;
 mod lsp;
 mod menu;
 mod search;
+mod settings;
 mod watcher;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -16,6 +17,7 @@ pub fn run() {
         .manage(watcher::WorkspaceWatcher::default())
         .manage(launch::PendingFolder::default())
         .manage(lsp::LanguageServers::default())
+        .manage(settings::SettingsWatcher::default())
         .on_page_load(|webview, payload| {
             if payload.event() == tauri::webview::PageLoadEvent::Started {
                 lsp::stop_all(tauri::Manager::app_handle(webview));
@@ -23,6 +25,7 @@ pub fn run() {
         })
         .setup(|app| {
             menu::install(app)?;
+            settings::start_watching(app.handle());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -41,6 +44,8 @@ pub fn run() {
             git::git_status,
             git::git_head_text,
             search::search_workspace,
+            settings::settings_path,
+            settings::read_settings,
             watcher::watch_workspace,
         ])
         .build(tauri::generate_context!())

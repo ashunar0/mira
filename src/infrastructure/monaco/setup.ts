@@ -5,6 +5,7 @@ import HtmlWorker from "monaco-editor/languages/features/html/html.worker.js?wor
 import JsonWorker from "monaco-editor/languages/features/json/json.worker.js?worker";
 import TsWorker from "monaco-editor/languages/features/typescript/ts.worker.js?worker";
 import { installHoverCopyFeedback } from "./hoverCopyFeedback";
+import { deepMerge, type ObjectTree, withResets } from "../objectTree";
 import { THEME_NAME } from "./theme";
 
 self.MonacoEnvironment = {
@@ -37,29 +38,24 @@ for (const defaults of [monaco.typescript.typescriptDefaults, monaco.typescript.
   defaults.setModeConfiguration({ ...defaults.modeConfiguration, diagnostics: false, hovers: false, definitions: false });
 }
 
+// mira の既定値。ユーザーの設定（settings.json の editor.*）はこの上に重ねる。
 // フォントは VS Code の macOS での既定値に合わせ、行間は好みで広めにとる
-const SHARED_OPTIONS = {
-  theme: THEME_NAME,
+const DEFAULT_OPTIONS: ObjectTree = {
   automaticLayout: true,
   fontFamily: "Menlo, Monaco, 'Courier New', monospace",
   fontSize: 12,
   lineHeight: 22,
   stickyScroll: { enabled: true },
   // カーソルのある行は、行番号の色で分かる
-  renderLineHighlight: "none" as const,
+  renderLineHighlight: "none",
   // VS Code と同じく、言語サーバーの「意味に基づく色分け」を TextMate 文法の色に重ねる（Kanagawa Dragon が有効にしている）
   "semanticHighlighting.enabled": true,
 };
 
-export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
-  ...SHARED_OPTIONS,
-  model: null,
-};
-
 // 左右に並べて増減が色で分かるだけにする。行を戻す矢印やメニューなどの操作は出さない。
-// 変更の位置は diff 専用の列を置かず、スクロールバーの印で示す（DiffPane）
-export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructionOptions = {
-  ...SHARED_OPTIONS,
+// 変更の位置は diff 専用の列を置かず、スクロールバーの印で示す（DiffPane）。
+// mira の diff の見せ方なので、ユーザーの設定より優先する
+const DIFF_ONLY_OPTIONS: ObjectTree = {
   useInlineViewWhenSpaceIsLimited: false,
   enableSplitViewResizing: false,
   renderMarginRevertIcon: false,
@@ -75,6 +71,58 @@ export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructio
   // 空白だけの変更も隠さない
   ignoreTrimWhitespace: false,
 };
+
+/** エディタに渡す設定。userOptions は settings.json の editor.* を入れ子にしたもの */
+export function editorOptions(userOptions: ObjectTree): monaco.editor.IEditorOptions {
+  return deepMerge(DEFAULT_OPTIONS, userOptions);
+}
+
+export function diffEditorOptions(userOptions: ObjectTree): monaco.editor.IDiffEditorOptions {
+  return deepMerge(deepMerge(DEFAULT_OPTIONS, userOptions), DIFF_ONLY_OPTIONS);
+}
+
+/** 作るときだけ渡す。テーマは全体で 1 つなので、設定を変えるたびには渡さない */
+export const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
+  ...editorOptions({}),
+  theme: THEME_NAME,
+  model: null,
+};
+
+export const DIFF_EDITOR_OPTIONS: monaco.editor.IStandaloneDiffEditorConstructionOptions = {
+  ...diffEditorOptions({}),
+  theme: THEME_NAME,
+};
+
+/**
+ * 設定を差し替える。updateOptions は渡した値しか変えないので、前に渡して今はない値は既定に戻す。
+ * 戻り値を次の previous に渡す
+ */
+export function replaceOptions<T extends object>(
+  editor: { updateOptions(options: T): void },
+  previous: ObjectTree,
+  next: T,
+): ObjectTree {
+  editor.updateOptions(withResets(previous, next as ObjectTree) as T);
+  return next as ObjectTree;
+}
+
+/**
+ * settings.json を JSONC として扱う（コメントと末尾のカンマを許す）。VS Code が設定ファイルに当てる扱いと同じ。
+ * ほかの .json は今までどおり厳密に見る
+ */
+export function treatAsJsonc(path: string) {
+  monaco.json.jsonDefaults.setDiagnosticsOptions({
+    validate: true,
+    schemas: [
+      {
+        uri: "mira://schemas/settings.json",
+        // 前に ** を付けないと、file:// で始まる URI と合わない
+        fileMatch: [`**${path}`],
+        schema: { type: "object", allowComments: true, allowTrailingCommas: true },
+      },
+    ],
+  });
+}
 
 export { monaco };
 

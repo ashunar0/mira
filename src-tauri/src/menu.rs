@@ -15,6 +15,8 @@ pub fn install(app: &App) -> tauri::Result<()> {
     let app_menu = SubmenuBuilder::new(app, "Mira")
         .about(None)
         .separator()
+        .item(&item("open-settings", "Settings...", "CmdOrCtrl+,")?)
+        .separator()
         .hide()
         .hide_others()
         .show_all()

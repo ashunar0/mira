@@ -1,5 +1,8 @@
 import { type RefObject, useEffect, useRef } from "react";
-import { EDITOR_OPTIONS, monaco } from "../../../infrastructure/monaco/setup";
+import { editorSettingsFor } from "../../../features/settings/lib/settings";
+import { useSettingsQuery } from "../../../features/settings/queries";
+import type { ObjectTree } from "../../../infrastructure/objectTree";
+import { EDITOR_OPTIONS, editorOptions, monaco, replaceOptions } from "../../../infrastructure/monaco/setup";
 import type { EditorStatus } from "./statusBar";
 import { useGitGutter } from "./useGitGutter";
 
@@ -79,6 +82,16 @@ export function EditorPane({ model, isHidden, gutterBaseText, revealRequest, foc
     if (nextState) editor.restoreViewState(nextState);
     if (!model) onStatusChange(null);
   }, [editorRef, model, onStatusChange, viewStates]);
+
+  // 言語ごとの上書きがあるので、ファイルを切り替えるたびにも当て直す
+  const settings = useSettingsQuery();
+  const appliedOptions = useRef<ObjectTree>({});
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const next = editorOptions(editorSettingsFor(settings, model?.getLanguageId() ?? null));
+    appliedOptions.current = replaceOptions(editor, appliedOptions.current, next);
+  }, [editorRef, model, settings]);
 
   useGitGutter(editorRef, model, gutterBaseText);
 

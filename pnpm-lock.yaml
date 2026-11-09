@@ -29,6 +29,9 @@ importers:
       '@vscode/codicons':
         specifier: 0.0.46-24
         version: 0.0.46-24
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
       markdown-it:
         specifier: ^15.0.3
         version: 15.0.3
@@ -421,6 +424,9 @@ packages:
 
   html-void-elements@3.0.0:
     resolution: {integrity: sha512-bEqo66MRXsUGxWHV5IP0PUiAWwoEjba4VCzg0LjFJBpchPaTfyfCKTG6bc5F8ucKec3q5y6qOdGyYTSBEvhCrg==}
+
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
   lightningcss-android-arm64@1.33.0:
     resolution: {integrity: sha512-gEpRTalKdosp4Bb8qWtc2iOgE5SeIHlpS1up9bFq2wAyYhl1UdTObYiHe98zEM9SQvSoqQZ1IQD0JNpg3Ml5pg==}
@@ -947,6 +953,8 @@ snapshots:
       '@types/hast': 3.0.5
 
   html-void-elements@3.0.0: {}
+
+  jsonc-parser@3.3.1: {}
 
   lightningcss-android-arm64@1.33.0:
     optional: true

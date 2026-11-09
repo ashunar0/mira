@@ -1,5 +1,14 @@
 import { type RefObject, useEffect, useRef } from "react";
-import { DIFF_EDITOR_OPTIONS, disposeDiffEditor, monaco } from "../../../infrastructure/monaco/setup";
+import { editorSettingsFor } from "../../../features/settings/lib/settings";
+import { useSettingsQuery } from "../../../features/settings/queries";
+import type { ObjectTree } from "../../../infrastructure/objectTree";
+import {
+  DIFF_EDITOR_OPTIONS,
+  diffEditorOptions,
+  disposeDiffEditor,
+  monaco,
+  replaceOptions,
+} from "../../../infrastructure/monaco/setup";
 import { readStatus } from "./editorPane";
 import type { EditorStatus } from "./statusBar";
 
@@ -80,6 +89,13 @@ export function DiffPane({ model, originalText, focusRequest, editorRef, onStatu
       original.dispose();
     };
   }, [editorRef, model, originalText]);
+
+  const settings = useSettingsQuery();
+  const appliedOptions = useRef<ObjectTree>({});
+  useEffect(() => {
+    const next = diffEditorOptions(editorSettingsFor(settings, model.getLanguageId()));
+    appliedOptions.current = replaceOptions(editorRef.current!, appliedOptions.current, next);
+  }, [editorRef, model, settings]);
 
   // 普段のエディタでは同じキーを複数カーソルに使うので、ネイティブメニューには置かず diff の間だけ受け取る
   useEffect(() => {
