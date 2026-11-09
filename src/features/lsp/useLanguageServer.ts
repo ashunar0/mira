@@ -1,16 +1,32 @@
 import { useCallback, useEffect, useRef } from "react";
 import { monaco } from "../../infrastructure/monaco/setup";
 import { type LanguageClient, startLanguageClient, type WatchedFileChanges } from "./languageClient";
+import { codeActionsOnSave } from "./lib/codeActionKinds";
 import type { LanguageServerDefinition } from "./lib/serverDefinitions";
 
 /** 定義へ飛ぶ先。行と列は 1 始まり */
 export type OpenLocation = (path: string, position: { line: number; column: number }) => void;
 
 /**
- * 保存時の整形を待つ長さ。VS Code は 60 秒待つ（files.participants.timeout）が、進み具合や取り消しの表示があってのこと。
+ * 保存時の整形とコードアクションを、1 段ごとに待つ長さ。VS Code は 60 秒待つ（files.participants.timeout）が、進み具合や取り消しの表示があってのこと。
  * Mira にはそれがないので、整形が返らなくても保存が止まって見えないよう短くする
  */
-const FORMAT_TIMEOUT_MS = 3000;
+const SAVE_STEP_TIMEOUT_MS = 3000;
+
+/** 時間切れの後に結果が届いても、保存した後の内容を書き換えないよう捨てる。失敗しても保存は続ける */
+async function withTimeout(run: (signal: AbortSignal) => Promise<void>): Promise<void> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<void>((resolve) => (timer = setTimeout(resolve, SAVE_STEP_TIMEOUT_MS)));
+  try {
+    await Promise.race([run(controller.signal), timeout]);
+  } catch (error) {
+    console.warn(error);
+  } finally {
+    controller.abort();
+    clearTimeout(timer);
+  }
+}
 
 /**
  * 開いたフォルダで言語サーバーを動かす。別のファイルの定義へ飛ぶときは openLocation を呼ぶ。
@@ -91,20 +107,21 @@ export function useLanguageServer(
         ? candidates[0]
         : undefined;
     if (!chosen) return;
-    // 時間切れの後に結果が届いても、保存した後の内容を書き換えないよう捨てる
-    const controller = new AbortController();
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeout = new Promise<void>((resolve) => (timer = setTimeout(resolve, FORMAT_TIMEOUT_MS)));
-    try {
-      await Promise.race([chosen.format(model, controller.signal), timeout]);
-    } catch (error) {
-      // 整形できなくても保存はする
-      console.warn(error);
-    } finally {
-      controller.abort();
-      clearTimeout(timer);
+    await withTimeout((signal) => chosen.format(model, signal));
+  }, []);
+
+  /**
+   * 保存時のコードアクション（editor.codeActionsOnSave）。種類ごとに、ファイルを受け持つサーバーすべてに聞いて当てる
+   * （VS Code と同じく、整形の担当のように 1 つに絞らない）。種類ごとに待つ長さは整形と同じ
+   */
+  const runCodeActionsOnSave = useCallback(async (model: monaco.editor.ITextModel, setting: unknown) => {
+    const { kinds, excludes } = codeActionsOnSave(setting);
+    for (const kind of kinds) {
+      for (const client of clientsRef.current.values()) {
+        await withTimeout((signal) => client.runCodeActions(model, kind, excludes, signal));
+      }
     }
   }, []);
 
-  return { notifyFileChanges, notifyConfigurationChange, formatDocument };
+  return { notifyFileChanges, notifyConfigurationChange, formatDocument, runCodeActionsOnSave };
 }

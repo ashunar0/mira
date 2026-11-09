@@ -2,6 +2,7 @@ import { monaco } from "../../infrastructure/monaco/setup";
 import { ensureLanguages } from "../../infrastructure/monaco/syntaxHighlighting";
 import { semanticStyleIndex, semanticTokenLegend } from "../../infrastructure/monaco/semanticTokenStyles";
 import { LanguageServerConnection } from "./connection";
+import { kindContains } from "./lib/codeActionKinds";
 import type { LanguageServerDefinition } from "./lib/serverDefinitions";
 import { listenLanguageServer, sendToLanguageServer, startLanguageServer, stopLanguageServer } from "./transport";
 
@@ -21,6 +22,12 @@ type Hover = { contents: MarkupContent | MarkedString | MarkedString[]; range?: 
 type Location = { uri: string; range: Range };
 type LocationLink = { targetUri: string; targetSelectionRange: Range; originSelectionRange?: Range };
 type TextEdit = { range: Range; newText: string };
+type WorkspaceEdit = {
+  changes?: Record<string, TextEdit[]>;
+  documentChanges?: ({ textDocument: { uri: string }; edits: TextEdit[] } | { kind: string })[];
+};
+type Command = { title: string; command: string; arguments?: unknown[] };
+type CodeAction = { title: string; kind?: string; edit?: WorkspaceEdit; command?: Command; disabled?: unknown; data?: unknown };
 
 const extensionOf = (path: string) => /\.([^./]+)$/.exec(path)?.[1];
 
@@ -108,6 +115,34 @@ function toStyledTokens(data: number[], legend: SemanticTokensLegend, languageId
   return new Uint32Array(styled);
 }
 
+/** 1 回の操作として当て、元に戻すで当てる前に戻れるようにする */
+function applyTextEdits(model: monaco.editor.ITextModel, edits: TextEdit[]): void {
+  if (edits.length === 0) return;
+  model.pushStackElement();
+  model.pushEditOperations([], edits.map((edit) => ({ range: toMonacoRange(edit.range), text: edit.newText })), () => null);
+  model.pushStackElement();
+}
+
+/**
+ * サーバーから届いた書き換えを、開いているファイルに当てる。開いていないファイルの書き換えとファイルの作成・削除は
+ * まだ扱わない（保存時のコードアクションは、そのファイルの中で済むため）。全部当てられたら true
+ */
+function applyWorkspaceEdit(edit: WorkspaceEdit): boolean {
+  const byUri: [string, TextEdit[]][] = [
+    ...Object.entries(edit.changes ?? {}),
+    ...(edit.documentChanges ?? []).flatMap((change): [string, TextEdit[]][] =>
+      "textDocument" in change ? [[change.textDocument.uri, change.edits]] : [],
+    ),
+  ];
+  let applied = (edit.documentChanges ?? []).every((change) => "textDocument" in change);
+  for (const [uri, edits] of byUri) {
+    const model = monaco.editor.getModel(monaco.Uri.parse(uriKey(uri)));
+    if (model) applyTextEdits(model, edits);
+    else applied = false;
+  }
+  return applied;
+}
+
 /** 打っている間は聞かず、止まってから型エラーを聞き直す */
 const DIAGNOSTICS_DELAY_MS = 300;
 
@@ -122,6 +157,8 @@ export type LanguageClient = {
   canFormat: (model: monaco.editor.ITextModel) => boolean;
   /** 整形して、結果をモデルに当てる（元に戻せる）。待つ間にモデルが変わったか、取りやめたら当てない */
   format: (model: monaco.editor.ITextModel, signal: AbortSignal) => Promise<void>;
+  /** kind のコードアクション（source.fixAll など）をファイル全体に当てる。excludes の種類は除く */
+  runCodeActions: (model: monaco.editor.ITextModel, kind: string, excludes: string[], signal: AbortSignal) => Promise<void>;
 };
 
 /**
@@ -136,6 +173,7 @@ export function startLanguageClient(
 ): LanguageClient {
   const markerOwner = `lsp.${config.name}`;
   let canServerFormat = false;
+  let codeActionSupport: { resolve: boolean } | null = null;
   /** 拡張子で決める。ほかのファイルは渡さない */
   const languageIdOf = (uri: monaco.Uri): string | null => {
     if (uri.scheme !== "file") return null;
@@ -256,6 +294,7 @@ export function startLanguageClient(
         if (method === "workspace/configuration") {
           return (params as { items: { section?: string }[] }).items.map((item) => getConfiguration(item.section) ?? null);
         }
+        if (method === "workspace/applyEdit") return { applied: applyWorkspaceEdit((params as { edit: WorkspaceEdit }).edit) };
         if (method === "workspace/diagnostic/refresh") refreshDiagnostics();
         if (method === "workspace/semanticTokens/refresh") semanticTokensChanged.fire();
         // ファイルの監視の登録（client/registerCapability）は受けるだけ。変更はフォルダの監視から全部伝える
@@ -270,6 +309,7 @@ export function startLanguageClient(
         semanticTokensProvider?: { legend: SemanticTokensLegend };
         diagnosticProvider?: unknown;
         documentFormattingProvider?: unknown;
+        codeActionProvider?: boolean | { resolveProvider?: boolean };
       };
     }>("initialize", {
       processId: null,
@@ -290,10 +330,19 @@ export function startLanguageClient(
           diagnostic: { dynamicRegistration: false },
           publishDiagnostics: { tagSupport: { valueSet: [1, 2] } },
           formatting: { dynamicRegistration: false },
+          codeAction: {
+            codeActionLiteralSupport: {
+              codeActionKind: { valueSet: ["", "quickfix", "refactor", "source", "source.organizeImports", "source.fixAll"] },
+            },
+            dataSupport: true,
+            resolveSupport: { properties: ["edit"] },
+          },
         },
         workspace: {
           configuration: true,
           didChangeConfiguration: { dynamicRegistration: false },
+          applyEdit: true,
+          workspaceEdit: { documentChanges: true },
           workspaceFolders: true,
           didChangeWatchedFiles: { dynamicRegistration: true },
           diagnostics: { refreshSupport: true },
@@ -304,6 +353,10 @@ export function startLanguageClient(
     if (isDisposed) return;
     canPullDiagnostics = capabilities.diagnosticProvider !== undefined;
     canServerFormat = Boolean(capabilities.documentFormattingProvider);
+    const codeActionProvider = capabilities.codeActionProvider;
+    codeActionSupport = codeActionProvider
+      ? { resolve: typeof codeActionProvider === "object" && codeActionProvider.resolveProvider === true }
+      : null;
     server.notify("initialized", {});
     connection = server;
     for (const model of monaco.editor.getModels()) openDocument(server, model);
@@ -379,10 +432,40 @@ export function startLanguageClient(
         options: { tabSize, insertSpaces },
       });
       if (!edits?.length || signal.aborted || model.isDisposed() || model.getVersionId() !== version) return;
-      // 1 回の操作として当て、元に戻すで整形前に戻れるようにする
-      model.pushStackElement();
-      model.pushEditOperations([], edits.map((edit) => ({ range: toMonacoRange(edit.range), text: edit.newText })), () => null);
-      model.pushStackElement();
+      applyTextEdits(model, edits);
+    },
+    runCodeActions: async (model, kind, excludes, signal) => {
+      const server = connection;
+      if (!server || !codeActionSupport || !syncedModels.has(model)) return;
+      const lastLine = model.getLineCount();
+      const found = await server.request<(CodeAction | Command)[] | null>("textDocument/codeAction", {
+        textDocument: { uri: model.uri.toString() },
+        range: { start: { line: 0, character: 0 }, end: toPosition({ lineNumber: lastLine, column: model.getLineMaxColumn(lastLine) }) },
+        // 保存時なので自動（2）。VS Code と同じく、型エラーは渡さない
+        context: { diagnostics: [], only: [kind], triggerKind: 2 },
+      });
+      // VS Code と同じく、種類が合うものだけ。種類のないもの（コマンドだけのもの）や、使えないとされたものは除く
+      const actions = (found ?? []).filter(
+        (action): action is CodeAction =>
+          typeof action.command !== "string" &&
+          "kind" in action &&
+          action.kind !== undefined &&
+          kindContains(kind, action.kind) &&
+          !excludes.some((exclude) => kindContains(exclude, action.kind!)) &&
+          !action.disabled,
+      );
+      for (const candidate of actions) {
+        if (signal.aborted || model.isDisposed()) return;
+        let action = candidate;
+        if (!action.edit && action.data !== undefined && codeActionSupport.resolve) {
+          action = await server.request<CodeAction>("codeAction/resolve", action);
+          if (signal.aborted || model.isDisposed()) return;
+        }
+        if (action.edit) applyWorkspaceEdit(action.edit);
+        if (action.command) {
+          await server.request("workspace/executeCommand", { command: action.command.command, arguments: action.command.arguments });
+        }
+      }
     },
     notifyConfigurationChange: () => {
       connection?.notify("workspace/didChangeConfiguration", { settings: null });

@@ -51,14 +51,16 @@ export function Workbench() {
   const previewTopLineRef = useRef<(() => number) | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const settings = useSettingsQuery();
-  // VS Code と同じく、editor.formatOnSave（言語ごとの上書きも見る）が有効なら、保存の前に整形する
-  const formatBeforeSave = async (model: monaco.editor.ITextModel) => {
+  // VS Code と同じ順で、保存の前にコードアクション（editor.codeActionsOnSave）、次に整形（editor.formatOnSave）。
+  // どちらも言語ごとの上書きを見る
+  const beforeSave = async (model: monaco.editor.ITextModel) => {
     const editorSettings = editorSettingsFor(settings, model.getLanguageId());
+    await languageServer.runCodeActionsOnSave(model, editorSettings.codeActionsOnSave);
     if (editorSettings.formatOnSave !== true) return;
     const defaultFormatter = typeof editorSettings.defaultFormatter === "string" ? editorSettings.defaultFormatter : null;
     await languageServer.formatDocument(model, defaultFormatter);
   };
-  const editorTabs = useEditorTabs(editorRef, formatBeforeSave);
+  const editorTabs = useEditorTabs(editorRef, beforeSave);
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
   const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
   const refreshGitStatus = useRefreshGitStatus();
