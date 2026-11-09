@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef } from "react";
-import { type OpenLocation, startTypeScriptClient, type WatchedFileChanges } from "./typescriptClient";
+import { monaco } from "../../infrastructure/monaco/setup";
+import { type ServerKind, startLanguageClient, type WatchedFileChanges } from "./languageClient";
+
+/** 定義へ飛ぶ先。行と列は 1 始まり */
+export type OpenLocation = (path: string, position: { line: number; column: number }) => void;
+
+const SERVERS: ServerKind[] = ["typescript", "rust"];
 
 /**
  * 開いたフォルダで言語サーバーを動かす。別のファイルの定義へ飛ぶときは openLocation を呼ぶ。
@@ -8,17 +14,32 @@ import { type OpenLocation, startTypeScriptClient, type WatchedFileChanges } fro
 export function useLanguageServer(root: string | null, openLocation: OpenLocation) {
   const openLocationRef = useRef(openLocation);
   openLocationRef.current = openLocation;
-  const clientRef = useRef<ReturnType<typeof startTypeScriptClient> | null>(null);
+  const clientsRef = useRef<ReturnType<typeof startLanguageClient>[]>([]);
 
   useEffect(() => {
     if (!root) return;
-    const client = startTypeScriptClient(root, (path, position) => openLocationRef.current(path, position));
-    clientRef.current = client;
+    const clients = SERVERS.map((kind) => startLanguageClient(kind, root));
+    clientsRef.current = clients;
+    // 別のファイルの定義は、タブで開いてもらう
+    const opener = monaco.editor.registerEditorOpener({
+      openCodeEditor: (_source, resource, selectionOrPosition) => {
+        if (resource.scheme !== "file") return false;
+        const position =
+          selectionOrPosition && "startLineNumber" in selectionOrPosition
+            ? { line: selectionOrPosition.startLineNumber, column: selectionOrPosition.startColumn }
+            : { line: selectionOrPosition?.lineNumber ?? 1, column: selectionOrPosition?.column ?? 1 };
+        openLocationRef.current(resource.path, position);
+        return true;
+      },
+    });
     return () => {
-      clientRef.current = null;
-      client.dispose();
+      clientsRef.current = [];
+      for (const client of clients) client.dispose();
+      opener.dispose();
     };
   }, [root]);
 
-  return useCallback((changes: WatchedFileChanges) => clientRef.current?.notifyFileChanges(changes), []);
+  return useCallback((changes: WatchedFileChanges) => {
+    for (const client of clientsRef.current) client.notifyFileChanges(changes);
+  }, []);
 }

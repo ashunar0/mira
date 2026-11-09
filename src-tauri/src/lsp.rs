@@ -1,4 +1,4 @@
-//! 言語サーバーを起動し、標準入出力の JSON-RPC をフロントエンドとの間で中継する。
+//! 言語サーバー（TypeScript 7 と rust-analyzer）を起動し、標準入出力の JSON-RPC をフロントエンドとの間で中継する。
 //! メッセージの中身は解釈しない。LSP のやりとりはフロントエンドが受け持つ。
 
 use std::{
@@ -120,19 +120,63 @@ fn write_message(writer: &mut impl Write, message: &str) -> std::io::Result<()> 
     writer.flush()
 }
 
-/// root で言語サーバーを起動する。返した番号を lsp_send と lsp_stop に渡す
+/// Mira が動かす言語サーバー
+#[derive(Clone, Copy, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ServerKind {
+    TypeScript,
+    Rust,
+}
+
+/// VS Code の rust-analyzer 拡張機能と同じく、直下か 1 段下に Cargo.toml があるフォルダだけで動かす
+fn has_cargo_manifest(root: &Path) -> bool {
+    root.join("Cargo.toml").is_file()
+        || root.read_dir().is_ok_and(|entries| {
+            entries.flatten().any(|entry| entry.path().join("Cargo.toml").is_file())
+        })
+}
+
+/// 起動するコマンド。そのフォルダで動かさない言語なら None
+fn server_command(kind: ServerKind, root: &Path) -> Result<Option<Command>, String> {
+    let path = login_path();
+    match kind {
+        ServerKind::TypeScript => {
+            let tsc = global_typescript(path).ok_or("TypeScript 7 is not installed. Run: npm i -g typescript@7")?;
+            let mut command = Command::new(tsc);
+            command.args(["--lsp", "--stdio"]);
+            Ok(Some(command))
+        }
+        ServerKind::Rust => {
+            if !has_cargo_manifest(root) {
+                return Ok(None);
+            }
+            // rustup の rust-analyzer。フォルダの rust-toolchain.toml の版を使う。
+            // cargo check を走らせるので、子にもログインシェルの PATH を渡す（コマンドもこの PATH で探す）
+            let mut command = Command::new("rust-analyzer");
+            command.env("PATH", path);
+            Ok(Some(command))
+        }
+    }
+}
+
+/// root で言語サーバーを起動する。返した番号を lsp_send と lsp_stop に渡す。そのフォルダで動かさない言語なら None
 #[tauri::command(async)]
-pub fn lsp_start(app: AppHandle, state: State<'_, LanguageServers>, root: String) -> Result<u64, String> {
-    let tsc = global_typescript(login_path())
-        .ok_or("TypeScript 7 is not installed. Run: npm i -g typescript@7")?;
-    let mut child = Command::new(tsc)
-        .args(["--lsp", "--stdio"])
+pub fn lsp_start(
+    app: AppHandle,
+    state: State<'_, LanguageServers>,
+    root: String,
+    server: ServerKind,
+) -> Result<Option<u64>, String> {
+    let Some(mut command) = server_command(server, Path::new(&root))? else {
+        return Ok(None);
+    };
+    let mut child = command
         .current_dir(&root)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
-        .map_err(|error| format!("Unable to start the TypeScript language server: {error}"))?;
+        .map_err(|error| format!("Unable to start the language server: {error}"))?;
     let stdin = child.stdin.take().ok_or("No stdin")?;
     let stdout = child.stdout.take().ok_or("No stdout")?;
     let id = state.next_id.fetch_add(1, Ordering::Relaxed) + 1;
@@ -146,7 +190,7 @@ pub fn lsp_start(app: AppHandle, state: State<'_, LanguageServers>, root: String
     });
 
     state.servers.lock().unwrap().insert(id, Server { child, stdin });
-    Ok(id)
+    Ok(Some(id))
 }
 
 /// 止まったサーバー宛てのメッセージは捨てる
@@ -181,6 +225,19 @@ mod tests {
         // 長さはバイトで数える
         assert_eq!(read_message(&mut reader).as_deref(), Some("{\"text\":\"日本語\"}"));
         assert_eq!(read_message(&mut reader), None);
+    }
+
+    #[test]
+    fn finds_cargo_manifest_at_the_root_or_one_level_down() {
+        let root = std::env::temp_dir().join(format!("mira-lsp-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(root.join("app/src")).unwrap();
+        assert!(!has_cargo_manifest(&root));
+        std::fs::write(root.join("app/src/Cargo.toml"), "").unwrap();
+        assert!(!has_cargo_manifest(&root), "2 段下は見ない");
+        std::fs::write(root.join("app/Cargo.toml"), "").unwrap();
+        assert!(has_cargo_manifest(&root));
+        std::fs::remove_dir_all(&root).unwrap();
     }
 
     #[test]

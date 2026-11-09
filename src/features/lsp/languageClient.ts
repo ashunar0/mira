@@ -3,9 +3,6 @@ import { SEMANTIC_TOKEN_LEGEND, semanticStyleIndex } from "../../infrastructure/
 import { LanguageServerConnection } from "./connection";
 import { listenLanguageServer, sendToLanguageServer, startLanguageServer, stopLanguageServer } from "./transport";
 
-/** 定義へ飛ぶ先。行と列は 1 始まり */
-export type OpenLocation = (path: string, position: { line: number; column: number }) => void;
-
 type Position = { line: number; character: number };
 type Range = { start: Position; end: Position };
 type Diagnostic = {
@@ -22,31 +19,41 @@ type Hover = { contents: MarkupContent | MarkedString | MarkedString[]; range?: 
 type Location = { uri: string; range: Range };
 type LocationLink = { targetUri: string; targetSelectionRange: Range; originSelectionRange?: Range };
 
-const MARKER_OWNER = "typescript";
-/** Monaco の言語。.tsx と .jsx は色の付け方のために別の言語にしてある（syntaxHighlighting） */
-const MONACO_LANGUAGES = ["typescript", "tsx", "javascript", "jsx"];
+/** Mira が動かす言語サーバー（src-tauri の lsp.rs と同じ名前） */
+export type ServerKind = "typescript" | "rust";
 
-/** サーバーに伝える言語は、拡張子で決める。ほかのファイルは渡さない */
-function languageIdOf(uri: monaco.Uri): string | null {
-  if (uri.scheme !== "file") return null;
-  const extension = /\.([^./]+)$/.exec(uri.path)?.[1];
-  switch (extension) {
-    case "ts":
-    case "mts":
-    case "cts":
-      return "typescript";
-    case "tsx":
-      return "typescriptreact";
-    case "js":
-    case "mjs":
-    case "cjs":
-      return "javascript";
-    case "jsx":
-      return "javascriptreact";
-    default:
-      return null;
-  }
-}
+type ServerConfig = {
+  /** Monaco の言語。.tsx と .jsx は色の付け方のために別の言語にしてある（syntaxHighlighting） */
+  monacoLanguages: string[];
+  /** 拡張子ごとの、サーバーに伝える言語。ほかのファイルは渡さない */
+  languageIds: Record<string, string>;
+  /**
+   * 外で書き換えられたファイルも、保存したと伝える。rust-analyzer は保存で cargo check を走らせ、
+   * 型エラーの多くはその結果で届く。VS Code は Mira の中で保存したときだけ伝えるが、Mira は AI が外で
+   * 書き換える前提なので、伝えないと型エラーが古いまま残る
+   */
+  saveOnExternalChange: boolean;
+};
+
+const SERVERS: Record<ServerKind, ServerConfig> = {
+  typescript: {
+    monacoLanguages: ["typescript", "tsx", "javascript", "jsx"],
+    languageIds: {
+      ts: "typescript",
+      mts: "typescript",
+      cts: "typescript",
+      tsx: "typescriptreact",
+      js: "javascript",
+      mjs: "javascript",
+      cjs: "javascript",
+      jsx: "javascriptreact",
+    },
+    saveOnExternalChange: false,
+  },
+  rust: { monacoLanguages: ["rust"], languageIds: { rs: "rust" }, saveOnExternalChange: true },
+};
+
+const extensionOf = (path: string) => /\.([^./]+)$/.exec(path)?.[1];
 
 const toPosition = (position: monaco.IPosition): Position => ({
   line: position.lineNumber - 1,
@@ -112,7 +119,7 @@ type SemanticTokensLegend = { tokenTypes: string[]; tokenModifiers: string[] };
  * サーバーの「種類と修飾」を、Mira が決めた色（SEMANTIC_TOKEN_LEGEND）に置き換える。
  * 色を変えないものは外すので、位置は相対で数え直す
  */
-function toStyledTokens(data: number[], legend: SemanticTokensLegend): Uint32Array {
+function toStyledTokens(data: number[], legend: SemanticTokensLegend, languageId: string): Uint32Array {
   const styled: number[] = [];
   let line = 0;
   let character = 0;
@@ -122,7 +129,7 @@ function toStyledTokens(data: number[], legend: SemanticTokensLegend): Uint32Arr
     line += data[i];
     character = data[i] === 0 ? character + data[i + 1] : data[i + 1];
     const modifiers = legend.tokenModifiers.filter((_, bit) => data[i + 4] & (1 << bit));
-    const style = semanticStyleIndex(legend.tokenTypes[data[i + 3]], modifiers);
+    const style = semanticStyleIndex(legend.tokenTypes[data[i + 3]], modifiers, languageId);
     if (style === null) continue;
     const deltaLine = line - previousLine;
     styled.push(deltaLine, deltaLine === 0 ? character - previousCharacter : character, data[i + 2], style, 0);
@@ -136,16 +143,28 @@ function toStyledTokens(data: number[], legend: SemanticTokensLegend): Uint32Arr
 const DIAGNOSTICS_DELAY_MS = 300;
 
 /**
- * root で TypeScript 7 の言語サーバーを動かし、型エラー・定義へジャンプ・ホバーを Monaco に足す。
- * Monaco 組み込みの同じ機能は setup で止めてある。サーバーを起動できなければ、これらは出ない。
+ * root で言語サーバーを動かし、型エラー・定義へジャンプ・ホバー・意味に基づく色分けを Monaco に足す。
+ * TypeScript について、Monaco 組み込みの同じ機能は setup で止めてある。サーバーを起動できなければ、これらは出ない。
  */
-export function startTypeScriptClient(
+export function startLanguageClient(
+  kind: ServerKind,
   root: string,
-  openLocation: OpenLocation,
 ): { dispose: () => void; notifyFileChanges: (changes: WatchedFileChanges) => void } {
+  const config = SERVERS[kind];
+  const markerOwner = kind;
+  /** 拡張子で決める。ほかのファイルは渡さない */
+  const languageIdOf = (uri: monaco.Uri): string | null => {
+    if (uri.scheme !== "file") return null;
+    const extension = extensionOf(uri.path);
+    return (extension && config.languageIds[extension]) ?? null;
+  };
   const disposables: monaco.IDisposable[] = [];
-  /** 型エラーは、エディタから聞く（pull）ものと、サーバーから届く（push）ものの両方を同じ形で持つ */
-  const diagnostics = new Map<string, Diagnostic[]>();
+  /**
+   * 型エラーは、エディタから聞く（pull）ものと、サーバーから届く（push）ものを分けて持ち、合わせて出す。
+   * rust-analyzer は自分で見つけたものを pull で、cargo check の結果を push で返す
+   */
+  const pulledDiagnostics = new Map<string, Diagnostic[]>();
+  const pushedDiagnostics = new Map<string, Diagnostic[]>();
   const resultIds = new Map<string, string>();
   const syncedModels = new Set<monaco.editor.ITextModel>();
   let stopListening: (() => void) | null = null;
@@ -157,16 +176,19 @@ export function startTypeScriptClient(
   let isDisposed = false;
 
   const applyMarkers = (model: monaco.editor.ITextModel) => {
-    const found = diagnostics.get(model.uri.toString()) ?? [];
-    monaco.editor.setModelMarkers(model, MARKER_OWNER, found.map(toMarker));
+    const uri = model.uri.toString();
+    const found = [...(pulledDiagnostics.get(uri) ?? []), ...(pushedDiagnostics.get(uri) ?? [])];
+    monaco.editor.setModelMarkers(model, markerOwner, found.map(toMarker));
   };
+  /** サーバーが pull に応じるか。initialize の答えで決まる */
+  let canPullDiagnostics = false;
 
   /** ほかのファイルの変更でも型エラーは変わるので、開いているファイルをすべて聞き直す */
   const refreshDiagnostics = () => {
     clearTimeout(diagnosticsTimer);
     diagnosticsTimer = setTimeout(() => {
       const server = connection;
-      if (!server) return;
+      if (!server || !canPullDiagnostics) return;
       for (const model of syncedModels) {
         const uri = model.uri.toString();
         server
@@ -176,7 +198,7 @@ export function startTypeScriptClient(
           })
           .then((report) => {
             if (report.resultId) resultIds.set(uri, report.resultId);
-            if (report.kind === "full") diagnostics.set(uri, report.items);
+            if (report.kind === "full") pulledDiagnostics.set(uri, report.items);
             if (!model.isDisposed()) applyMarkers(model);
           })
           // サーバーが止まった、またはその間に閉じられた
@@ -221,11 +243,13 @@ export function startTypeScriptClient(
     connection = null;
     for (const disposable of disposables) disposable.dispose();
     semanticTokensChanged.dispose();
-    monaco.editor.removeAllMarkers(MARKER_OWNER);
+    monaco.editor.removeAllMarkers(markerOwner);
   };
 
   const start = async () => {
-    const started = await startLanguageServer(root);
+    const started = await startLanguageServer(kind, root);
+    // このフォルダでは動かさない言語
+    if (started === null) return;
     serverId = started;
     // 起動を待つ間に閉じられた
     if (isDisposed) {
@@ -237,7 +261,7 @@ export function startTypeScriptClient(
         if (method !== "textDocument/publishDiagnostics") return;
         const { uri, diagnostics: found } = params as { uri: string; diagnostics: Diagnostic[] };
         const key = uriKey(uri);
-        diagnostics.set(key, found);
+        pushedDiagnostics.set(key, found);
         const model = monaco.editor.getModel(monaco.Uri.parse(key));
         if (model) applyMarkers(model);
       },
@@ -253,7 +277,7 @@ export function startTypeScriptClient(
     stopListening = listenLanguageServer(started, (text) => server.receive(text), shutdown);
 
     const { capabilities } = await server.request<{
-      capabilities: { semanticTokensProvider?: { legend: SemanticTokensLegend } };
+      capabilities: { semanticTokensProvider?: { legend: SemanticTokensLegend }; diagnosticProvider?: unknown };
     }>("initialize", {
       processId: null,
       rootUri,
@@ -282,6 +306,7 @@ export function startTypeScriptClient(
       },
     });
     if (isDisposed) return;
+    canPullDiagnostics = capabilities.diagnosticProvider !== undefined;
     server.notify("initialized", {});
     connection = server;
     for (const model of monaco.editor.getModels()) openDocument(server, model);
@@ -291,7 +316,7 @@ export function startTypeScriptClient(
         if (!syncedModels.delete(model)) return;
         server.notify("textDocument/didClose", { textDocument: { uri: model.uri.toString() } });
       }),
-      monaco.languages.registerHoverProvider(MONACO_LANGUAGES, {
+      monaco.languages.registerHoverProvider(config.monacoLanguages, {
         provideHover: async (model, position) => {
           if (!syncedModels.has(model)) return null;
           const hover = await server.request<Hover | null>("textDocument/hover", {
@@ -302,7 +327,7 @@ export function startTypeScriptClient(
           return { contents: toMarkdown(hover.contents), range: hover.range && toMonacoRange(hover.range) };
         },
       }),
-      monaco.languages.registerDefinitionProvider(MONACO_LANGUAGES, {
+      monaco.languages.registerDefinitionProvider(config.monacoLanguages, {
         provideDefinition: async (model, position) => {
           if (!syncedModels.has(model)) return null;
           const result = await server.request<Location | Location[] | LocationLink[] | null>(
@@ -321,30 +346,19 @@ export function startTypeScriptClient(
           );
         },
       }),
-      monaco.languages.registerDocumentSemanticTokensProvider(MONACO_LANGUAGES, {
+      monaco.languages.registerDocumentSemanticTokensProvider(config.monacoLanguages, {
         onDidChange: semanticTokensChanged.event,
         getLegend: () => ({ tokenTypes: SEMANTIC_TOKEN_LEGEND, tokenModifiers: [] }),
         provideDocumentSemanticTokens: async (model) => {
           const legend = capabilities.semanticTokensProvider?.legend;
-          if (!legend || !syncedModels.has(model)) return null;
+          const languageId = languageIdOf(model.uri);
+          if (!legend || !languageId || !syncedModels.has(model)) return null;
           const result = await server.request<{ data: number[] } | null>("textDocument/semanticTokens/full", {
             textDocument: { uri: model.uri.toString() },
           });
-          return result && { data: toStyledTokens(result.data, legend) };
+          return result && { data: toStyledTokens(result.data, legend, languageId) };
         },
         releaseDocumentSemanticTokens: () => {},
-      }),
-      // 別のファイルの定義は、タブで開いてもらう
-      monaco.editor.registerEditorOpener({
-        openCodeEditor: (_source, resource, selectionOrPosition) => {
-          if (resource.scheme !== "file") return false;
-          const position =
-            selectionOrPosition && "startLineNumber" in selectionOrPosition
-              ? { line: selectionOrPosition.startLineNumber, column: selectionOrPosition.startColumn }
-              : { line: selectionOrPosition?.lineNumber ?? 1, column: selectionOrPosition?.column ?? 1 };
-          openLocation(resource.path, position);
-          return true;
-        },
       }),
     );
   };
@@ -364,6 +378,11 @@ export function startTypeScriptClient(
       server.notify("workspace/didChangeWatchedFiles", {
         changes: paths.map((path) => ({ uri: monaco.Uri.file(path).toString(), type: gone.has(path) ? 3 : 2 })),
       });
+      if (config.saveOnExternalChange) {
+        // cargo check はフォルダ全体を見るので、1 つ伝えれば足りる。何度も伝えると、そのたびにやり直す
+        const saved = paths.find((path) => !gone.has(path) && languageIdOf(monaco.Uri.file(path)) !== null);
+        if (saved) server.notify("textDocument/didSave", { textDocument: { uri: monaco.Uri.file(saved).toString() } });
+      }
       refreshDiagnostics();
       semanticTokensChanged.fire();
     },
