@@ -64,8 +64,13 @@ export function settingValue(settings: Settings, section: string): unknown {
 
 /** ある言語のファイルで効く `editor.*` の値。言語は Monaco の名前で渡す。言語ごとの上書きは、書いた順に重ねる */
 export function editorSettingsFor(settings: Settings, monacoLanguageId: string | null): ObjectTree {
+  return languageSettingsFor(settings, monacoLanguageId, "editor");
+}
+
+/** ある言語のファイルで効く、name（"editor"、"files" など）の下の値 */
+export function languageSettingsFor(settings: Settings, monacoLanguageId: string | null, name: string): ObjectTree {
   const languageId = monacoLanguageId && (VSCODE_LANGUAGE_IDS[monacoLanguageId] ?? monacoLanguageId);
-  const section = (values: ObjectTree) => (isPlainObject(values.editor) ? values.editor : {});
+  const section = (values: ObjectTree) => (isPlainObject(values[name]) ? values[name] : {});
   return settings.languageOverrides
     .filter((override) => languageId !== null && override.languages.includes(languageId))
     .reduce((merged, override) => deepMerge(merged, section(override.values)), section(settings.values));

@@ -5,12 +5,19 @@ import { useLanguageServer } from "../../../features/lsp/useLanguageServer";
 import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { useRefreshSearch } from "../../../features/search/queries";
 import { languageServersFrom } from "../../../features/lsp/lib/serverDefinitions";
-import { colorCustomizationsFor, colorThemeOf, editorSettingsFor, settingValue } from "../../../features/settings/lib/settings";
+import {
+  colorCustomizationsFor,
+  colorThemeOf,
+  editorSettingsFor,
+  languageSettingsFor,
+  settingValue,
+} from "../../../features/settings/lib/settings";
 import { useSettingsPathsQuery, useSettingsQuery, useSettingsWatcher } from "../../../features/settings/queries";
 import { useColorThemeQuery } from "../../../features/themes/queries";
 import type { SearchMatch } from "../../../features/search/type";
 import { closeWindow, onFolderRequested, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import { type monaco, treatAsJsonc } from "../../../infrastructure/monaco/setup";
+import { insertFinalNewline, trimFinalNewlines, trimTrailingWhitespace } from "../../../infrastructure/monaco/saveCleanups";
 import { BUNDLED_THEME, applyColorTheme } from "../../../infrastructure/monaco/theme";
 import { pickFolder } from "../../../infrastructure/nativeDialog";
 import { ActivityBar, type SidebarView } from "./activityBar";
@@ -51,14 +58,21 @@ export function Workbench() {
   const previewTopLineRef = useRef<(() => number) | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const settings = useSettingsQuery();
-  // VS Code と同じ順で、保存の前にコードアクション（editor.codeActionsOnSave）、次に整形（editor.formatOnSave）。
-  // どちらも言語ごとの上書きを見る
+  // VS Code と同じ順（saveParticipants.ts）で、保存の前に 行末の空白 → コードアクション → 整形 → 最後の改行 →
+  // 最後の空行。どれも言語ごとの上書きを見る（あさひの設定は [markdown] で行末の空白を残す）
   const beforeSave = async (model: monaco.editor.ITextModel) => {
-    const editorSettings = editorSettingsFor(settings, model.getLanguageId());
+    const languageId = model.getLanguageId();
+    const editorSettings = editorSettingsFor(settings, languageId);
+    const filesSettings = languageSettingsFor(settings, languageId, "files");
+    if (filesSettings.trimTrailingWhitespace === true) trimTrailingWhitespace(model);
     await languageServer.runCodeActionsOnSave(model, editorSettings.codeActionsOnSave);
-    if (editorSettings.formatOnSave !== true) return;
-    const defaultFormatter = typeof editorSettings.defaultFormatter === "string" ? editorSettings.defaultFormatter : null;
-    await languageServer.formatDocument(model, defaultFormatter);
+    if (editorSettings.formatOnSave === true) {
+      const defaultFormatter = typeof editorSettings.defaultFormatter === "string" ? editorSettings.defaultFormatter : null;
+      await languageServer.formatDocument(model, defaultFormatter);
+    }
+    if (model.isDisposed()) return;
+    if (filesSettings.insertFinalNewline === true) insertFinalNewline(model);
+    if (filesSettings.trimFinalNewlines === true) trimFinalNewlines(model);
   };
   const editorTabs = useEditorTabs(editorRef, beforeSave);
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
