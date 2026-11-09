@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { settingsKeys } from "./keys";
-import { parseSettings } from "./lib/settings";
-import { listenSettingsChanges, readSettings, settingsPath } from "./transport";
+import { layerSettings, parseSettings } from "./lib/settings";
+import { listenSettingsChanges, readSettings, settingsPaths } from "./transport";
 import type { Settings } from "./type";
 
 const EMPTY: Settings = { values: {}, languageOverrides: [] };
@@ -11,14 +11,17 @@ const EMPTY: Settings = { values: {}, languageOverrides: [] };
 export function useSettingsQuery(): Settings {
   const { data } = useQuery({
     queryKey: settingsKeys.user,
-    queryFn: async () => parseSettings(await readSettings()),
+    queryFn: async () => {
+      const texts = await readSettings();
+      return layerSettings(parseSettings(texts.vscode), parseSettings(texts.mira));
+    },
     staleTime: Infinity,
   });
   return data ?? EMPTY;
 }
 
-export function useSettingsPathQuery() {
-  return useQuery({ queryKey: settingsKeys.path, queryFn: settingsPath, staleTime: Infinity }).data ?? null;
+export function useSettingsPathsQuery() {
+  return useQuery({ queryKey: settingsKeys.path, queryFn: settingsPaths, staleTime: Infinity }).data ?? null;
 }
 
 /** 設定ファイルが書き換わったら読み直す。開いているタブの扱いは onChange に任せる */

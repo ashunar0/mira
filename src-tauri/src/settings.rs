@@ -1,4 +1,6 @@
-//! ユーザーの設定ファイル（~/.config/mira/settings.json）の場所と監視。中身の解釈はフロントエンドが受け持つ。
+//! 設定ファイルの場所と監視。中身の解釈はフロントエンドが受け持つ。
+//! mira の設定（~/.config/mira/settings.json）の下に、VS Code のユーザー設定を敷く。名前が同じなので、
+//! VS Code で変えた設定がそのまま効き、mira だけ変えたいものは mira の側で上書きする。
 
 use std::{
     fs, io,
@@ -12,6 +14,7 @@ use notify_debouncer_full::{
     notify::{RecommendedWatcher, RecursiveMode},
     DebounceEventResult, Debouncer, RecommendedCache,
 };
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
 const DEBOUNCE: Duration = Duration::from_millis(200);
@@ -21,9 +24,17 @@ const INITIAL_CONTENT: &str = "// Mira の設定。VS Code の settings.json と
 #[derive(Default)]
 pub struct SettingsWatcher(Mutex<Option<Debouncer<RecommendedWatcher, RecommendedCache>>>);
 
+fn home() -> Option<PathBuf> {
+    std::env::var_os("HOME").map(PathBuf::from)
+}
+
 fn settings_file() -> Option<PathBuf> {
-    let home = std::env::var_os("HOME")?;
-    Some(Path::new(&home).join(".config/mira/settings.json"))
+    Some(home()?.join(".config/mira/settings.json"))
+}
+
+/// VS Code の既定のプロファイルのユーザー設定。mira からは書き換えず、なくても作らない
+fn vscode_settings_file() -> Option<PathBuf> {
+    Some(home()?.join("Library/Application Support/Code/User/settings.json"))
 }
 
 /// ファイルがなければ、空の設定で作る。開いて書き始められるように
@@ -60,17 +71,17 @@ pub fn start_watching(app: &AppHandle) {
     let Some(path) = settings_file() else { return };
     if let Err(error) = ensure_exists(&path) {
         eprintln!("cannot create settings file: {error}");
-        return;
     }
+    let files: Vec<PathBuf> = [Some(path), vscode_settings_file()].into_iter().flatten().collect();
     let handle = app.clone();
-    let file = path.clone();
+    let watched = files.clone();
     let handler = move |result: DebounceEventResult| {
         let changed = match result {
             Ok(events) => events
                 .iter()
                 .filter(|event| !event.kind.is_access())
                 .flat_map(|event| &event.paths)
-                .any(|event_path| is_settings_event(event_path, &file)),
+                .any(|event_path| watched.iter().any(|file| is_settings_event(event_path, file))),
             // 取りこぼしたかもしれないので、読み直してもらう
             Err(_) => true,
         };
@@ -85,7 +96,7 @@ pub fn start_watching(app: &AppHandle) {
             return;
         }
     };
-    for dir in watched_dirs(&path) {
+    for dir in files.iter().filter(|file| file.exists()).flat_map(|file| watched_dirs(file)) {
         if let Err(error) = debouncer.watch(&dir, RecursiveMode::NonRecursive) {
             eprintln!("cannot watch {}: {error}", dir.display());
         }
@@ -93,15 +104,37 @@ pub fn start_watching(app: &AppHandle) {
     *app.state::<SettingsWatcher>().0.lock().unwrap() = Some(debouncer);
 }
 
-#[tauri::command]
-pub fn settings_path() -> Option<String> {
-    settings_file().map(|path| path.to_string_lossy().into_owned())
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SettingsPaths {
+    mira: Option<String>,
+    vscode: Option<String>,
 }
 
-/// 設定ファイルの中身。読めなければ空にして、既定の設定で動かす
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SettingsTexts {
+    mira: String,
+    vscode: String,
+}
+
+fn to_string(path: Option<PathBuf>) -> Option<String> {
+    path.map(|path| path.to_string_lossy().into_owned())
+}
+
+fn read(path: Option<PathBuf>) -> String {
+    path.and_then(|path| fs::read_to_string(path).ok()).unwrap_or_default()
+}
+
+#[tauri::command]
+pub fn settings_paths() -> SettingsPaths {
+    SettingsPaths { mira: to_string(settings_file()), vscode: to_string(vscode_settings_file()) }
+}
+
+/// 設定ファイルの中身。読めないものは空にして、既定の設定で動かす
 #[tauri::command(async)]
-pub fn read_settings() -> String {
-    settings_file().and_then(|path| fs::read_to_string(path).ok()).unwrap_or_default()
+pub fn read_settings() -> SettingsTexts {
+    SettingsTexts { mira: read(settings_file()), vscode: read(vscode_settings_file()) }
 }
 
 #[cfg(test)]

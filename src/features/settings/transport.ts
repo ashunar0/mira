@@ -1,13 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import type { SettingsPaths, SettingsTexts } from "./type";
 
 /** 設定ファイルの場所。ホームフォルダが分からなければ null */
-export function settingsPath(): Promise<string | null> {
-  return invoke("settings_path");
+export function settingsPaths(): Promise<SettingsPaths> {
+  return invoke("settings_paths");
 }
 
-/** 設定ファイルの中身。読めなければ空 */
-export function readSettings(): Promise<string> {
+/** 設定ファイルの中身。読めないものは空 */
+export function readSettings(): Promise<SettingsTexts> {
   return invoke("read_settings");
 }
 

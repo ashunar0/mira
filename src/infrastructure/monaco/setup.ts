@@ -110,14 +110,14 @@ export function replaceOptions<T extends object>(
  * settings.json を JSONC として扱う（コメントと末尾のカンマを許す）。VS Code が設定ファイルに当てる扱いと同じ。
  * ほかの .json は今までどおり厳密に見る
  */
-export function treatAsJsonc(path: string) {
+export function treatAsJsonc(paths: string[]) {
   monaco.json.jsonDefaults.setDiagnosticsOptions({
     validate: true,
     schemas: [
       {
         uri: "mira://schemas/settings.json",
         // 前に ** を付けないと、file:// で始まる URI と合わない
-        fileMatch: [`**${path}`],
+        fileMatch: paths.map((path) => `**${path}`),
         schema: { type: "object", allowComments: true, allowTrailingCommas: true },
       },
     ],

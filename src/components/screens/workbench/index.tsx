@@ -4,7 +4,7 @@ import { useWorkspaceWatcher } from "../../../features/files/watcher";
 import { useLanguageServer } from "../../../features/lsp/useLanguageServer";
 import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { useRefreshSearch } from "../../../features/search/queries";
-import { useSettingsPathQuery, useSettingsWatcher } from "../../../features/settings/queries";
+import { useSettingsPathsQuery, useSettingsWatcher } from "../../../features/settings/queries";
 import type { SearchMatch } from "../../../features/search/type";
 import { closeWindow, onFolderRequested, onNativeMenu, onWindowCloseRequested } from "../../../infrastructure/appWindow";
 import { type monaco, treatAsJsonc } from "../../../infrastructure/monaco/setup";
@@ -62,15 +62,15 @@ export function Workbench() {
     void refreshSearch();
   });
 
-  const settingsPath = useSettingsPathQuery();
+  const settingsPaths = useSettingsPathsQuery();
+  const settingsPath = settingsPaths?.mira ?? null;
   useEffect(() => {
-    if (settingsPath) treatAsJsonc(settingsPath);
-  }, [settingsPath]);
+    if (settingsPaths) treatAsJsonc([settingsPaths.mira, settingsPaths.vscode].filter((path) => path !== null));
+  }, [settingsPaths]);
   // 設定ファイルはフォルダの外にあるので、開いているタブはこちらの通知で読み直す
   useSettingsWatcher(() => {
-    if (settingsPath) {
-      editorTabs.handleFileChanges({ paths: [settingsPath], removed: [], needsRescan: false, gitChanged: false });
-    }
+    const paths = [settingsPaths?.mira, settingsPaths?.vscode].filter((path) => path != null);
+    editorTabs.handleFileChanges({ paths, removed: [], needsRescan: false, gitChanged: false });
   });
   const openSettings = () => {
     if (!settingsPath) return;

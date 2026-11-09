@@ -44,7 +44,7 @@ pub fn run() {
             git::git_status,
             git::git_head_text,
             search::search_workspace,
-            settings::settings_path,
+            settings::settings_paths,
             settings::read_settings,
             watcher::watch_workspace,
         ])

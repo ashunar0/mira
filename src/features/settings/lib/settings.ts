@@ -39,6 +39,14 @@ export function parseSettings(text: string): Settings {
   return settings;
 }
 
+/** 後ろの設定を優先して重ねる。言語ごとの上書きは、どの層のものも普通の設定より強い（VS Code と同じ） */
+export function layerSettings(lower: Settings, upper: Settings): Settings {
+  return {
+    values: deepMerge(lower.values, upper.values),
+    languageOverrides: [...lower.languageOverrides, ...upper.languageOverrides],
+  };
+}
+
 /** ある言語のファイルで効く `editor.*` の値。言語ごとの上書きは、書いた順に重ねる */
 export function editorSettingsFor(settings: Settings, languageId: string | null): ObjectTree {
   const section = (values: ObjectTree) => (isPlainObject(values.editor) ? values.editor : {});
