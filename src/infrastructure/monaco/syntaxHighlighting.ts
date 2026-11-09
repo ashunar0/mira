@@ -1,5 +1,5 @@
 import { shikiToMonaco } from "@shikijs/monaco";
-import { createHighlighter, type Highlighter, type ThemeRegistrationRaw } from "shiki";
+import { type BundledLanguage, bundledLanguages, createHighlighter, type Highlighter, type ThemeRegistrationRaw } from "shiki";
 import { monaco } from "./setup";
 
 /**
@@ -44,6 +44,16 @@ const originalCreate = monaco.editor.create;
 
 let highlighter: Highlighter | null = null;
 let themeCount = 0;
+let currentTheme: string | null = null;
+
+/** 文法やテーマを足した後に、Monaco に色の付け方を渡し直す */
+function reinstall(): void {
+  if (!highlighter) return;
+  monaco.editor.setTheme = originalSetTheme;
+  monaco.editor.create = originalCreate;
+  shikiToMonaco(highlighter, monaco);
+  if (currentTheme) monaco.editor.setTheme(currentTheme);
+}
 
 /**
  * コードの色を、Monaco の簡易的な仕組み（Monarch）から、VS Code と同じ TextMate 文法に替える。
@@ -61,6 +71,7 @@ export async function installSyntaxHighlighting(): Promise<void> {
 export function switchCodeTheme(theme: Omit<ThemeRegistrationRaw, "name">): void {
   // 中身が変わっても確実に作り直されるよう、毎回別の名前にする
   const name = `mira-theme-${++themeCount}`;
+  currentTheme = name;
   const registration = { ...theme, name } as ThemeRegistrationRaw;
   if (!highlighter) {
     monaco.editor.defineTheme(name, {
@@ -73,8 +84,35 @@ export function switchCodeTheme(theme: Omit<ThemeRegistrationRaw, "name">): void
     return;
   }
   highlighter.loadThemeSync(registration);
-  monaco.editor.setTheme = originalSetTheme;
-  monaco.editor.create = originalCreate;
-  shikiToMonaco(highlighter, monaco);
-  monaco.editor.setTheme(name);
+  reinstall();
+}
+
+/**
+ * 拡張子ごとの言語を Monaco に登録し、その Monaco の言語を返す。Monaco が知っている拡張子はそのまま使う。
+ * 知らない拡張子は languageIds の名前で登録し、Shiki に同じ名前の文法があれば色も付ける（vue、svelte など）。
+ * 登録前に開いていたファイルは、言語なしで開かれているので付け直す
+ */
+export async function ensureLanguages(languageIds: Record<string, string>): Promise<string[]> {
+  const monacoIds = new Set<string>();
+  let addedGrammar = false;
+  for (const [extension, languageId] of Object.entries(languageIds)) {
+    const known = monaco.languages.getLanguages().find((language) => language.extensions?.includes(`.${extension}`));
+    if (known) {
+      monacoIds.add(known.id);
+      continue;
+    }
+    monaco.languages.register({ id: languageId, extensions: [`.${extension}`] });
+    monacoIds.add(languageId);
+    if (highlighter && languageId in bundledLanguages && !highlighter.getLoadedLanguages().includes(languageId)) {
+      await highlighter.loadLanguage(languageId as BundledLanguage);
+      addedGrammar = true;
+    }
+    for (const model of monaco.editor.getModels()) {
+      if (model.uri.path.endsWith(`.${extension}`) && model.getLanguageId() === "plaintext") {
+        monaco.editor.setModelLanguage(model, languageId);
+      }
+    }
+  }
+  if (addedGrammar) reinstall();
+  return [...monacoIds];
 }

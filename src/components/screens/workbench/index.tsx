@@ -4,7 +4,8 @@ import { useWorkspaceWatcher } from "../../../features/files/watcher";
 import { useLanguageServer } from "../../../features/lsp/useLanguageServer";
 import { useGitDecorationsQuery, useHeadTextQuery, useRefreshGitStatus } from "../../../features/git/queries";
 import { useRefreshSearch } from "../../../features/search/queries";
-import { colorCustomizationsFor, colorThemeOf } from "../../../features/settings/lib/settings";
+import { languageServersFrom } from "../../../features/lsp/lib/serverDefinitions";
+import { colorCustomizationsFor, colorThemeOf, editorSettingsFor, settingValue } from "../../../features/settings/lib/settings";
 import { useSettingsPathsQuery, useSettingsQuery, useSettingsWatcher } from "../../../features/settings/queries";
 import { useColorThemeQuery } from "../../../features/themes/queries";
 import type { SearchMatch } from "../../../features/search/type";
@@ -49,18 +50,39 @@ export function Workbench() {
   const diffEditorRef = useRef<monaco.editor.IStandaloneDiffEditor | null>(null);
   const previewTopLineRef = useRef<(() => number) | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const editorTabs = useEditorTabs(editorRef);
+  const settings = useSettingsQuery();
+  // VS Code と同じく、editor.formatOnSave（言語ごとの上書きも見る）が有効なら、保存の前に整形する
+  const formatBeforeSave = async (model: monaco.editor.ITextModel) => {
+    const editorSettings = editorSettingsFor(settings, model.getLanguageId());
+    if (editorSettings.formatOnSave !== true) return;
+    const defaultFormatter = typeof editorSettings.defaultFormatter === "string" ? editorSettings.defaultFormatter : null;
+    await languageServer.formatDocument(model, defaultFormatter);
+  };
+  const editorTabs = useEditorTabs(editorRef, formatBeforeSave);
   const { tabs, activeTab, activeModel, activeHasBom, focusRequest, viewStates } = editorTabs;
   const { data: gitDecorations } = useGitDecorationsQuery(rootPath);
   const refreshGitStatus = useRefreshGitStatus();
   const refreshSearch = useRefreshSearch();
   // 別のファイルの定義へ飛んだら、そのままそこを読み進めるのでタブに固定する
-  const notifyLanguageServer = useLanguageServer(rootPath, (path, { line, column }) =>
-    openAt(path, { line, column, length: 0 }, { pin: true }),
+  const languageServer = useLanguageServer(
+    rootPath,
+    languageServersFrom(settingValue(settings, "mira.languageServers")),
+    (section) => (section ? settingValue(settings, section) : settings.values),
+    (path, { line, column }) => openAt(path, { line, column, length: 0 }, { pin: true }),
   );
+  // 設定を読み直したら、サーバーに聞き直してもらう（最初の読み込みは起動時に聞かれる）
+  const { notifyConfigurationChange } = languageServer;
+  const isFirstSettings = useRef(true);
+  useEffect(() => {
+    if (isFirstSettings.current) {
+      isFirstSettings.current = false;
+      return;
+    }
+    notifyConfigurationChange();
+  }, [settings, notifyConfigurationChange]);
   useWorkspaceWatcher(rootPath, (changes) => {
     editorTabs.handleFileChanges(changes);
-    notifyLanguageServer(changes);
+    languageServer.notifyFileChanges(changes);
     void refreshGitStatus();
     void refreshSearch();
   });
@@ -76,7 +98,6 @@ export function Workbench() {
     editorTabs.handleFileChanges({ paths, removed: [], needsRescan: false, gitChanged: false });
   });
   // テーマは読み終えてから替える。見つからなければ mira に入れてあるもの
-  const settings = useSettingsQuery();
   const themeId = colorThemeOf(settings);
   const colorTheme = useColorThemeQuery(themeId);
   useEffect(() => {

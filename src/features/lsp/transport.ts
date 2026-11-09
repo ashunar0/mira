@@ -1,14 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import type { ServerKind } from "./languageClient";
+import type { ServerSpec } from "./lib/serverDefinitions";
 
 type ServerMessage = { id: number; message: string };
 
 /**
  * root で言語サーバーを起動する。返る番号でやりとりし、使い終わったら stopLanguageServer で止める。
- * そのフォルダで動かさない言語（Cargo.toml のないフォルダの Rust）なら null
+ * そのフォルダで動かさない言語（Cargo.toml のないフォルダの Rust、目印のないフォルダの設定のサーバー）なら null
  */
-export function startLanguageServer(server: ServerKind, root: string): Promise<number | null> {
+export function startLanguageServer(server: ServerSpec, root: string): Promise<number | null> {
   return invoke("lsp_start", { server, root });
 }
 

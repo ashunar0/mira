@@ -1,5 +1,5 @@
 import { parse, type ParseError } from "jsonc-parser";
-import { deepMerge, isPlainObject, type ObjectTree } from "../../../infrastructure/objectTree";
+import { deepMerge, getPath, isPlainObject, type ObjectTree } from "../../../infrastructure/objectTree";
 import type { Settings } from "../type";
 
 /** "[markdown]" や "[markdown][yaml]" のような、言語ごとの上書き。colorCustomizations のテーマごとの上書きも同じ形 */
@@ -47,8 +47,24 @@ export function layerSettings(lower: Settings, upper: Settings): Settings {
   };
 }
 
-/** ある言語のファイルで効く `editor.*` の値。言語ごとの上書きは、書いた順に重ねる */
-export function editorSettingsFor(settings: Settings, languageId: string | null): ObjectTree {
+/**
+ * Mira の言語の名前と VS Code の言語の名前が違うもの。Mira は色の付け方のために .tsx と .jsx を別の言語にして
+ * いて（syntaxHighlighting）、シェルは Monaco の名前を使っている。設定の "[typescriptreact]" などは VS Code の名前で書く
+ */
+const VSCODE_LANGUAGE_IDS: Record<string, string> = {
+  tsx: "typescriptreact",
+  jsx: "javascriptreact",
+  shell: "shellscript",
+};
+
+/** 設定の値。"yaml.schemas" のようなドット区切りの名前で */
+export function settingValue(settings: Settings, section: string): unknown {
+  return getPath(settings.values, section);
+}
+
+/** ある言語のファイルで効く `editor.*` の値。言語は Monaco の名前で渡す。言語ごとの上書きは、書いた順に重ねる */
+export function editorSettingsFor(settings: Settings, monacoLanguageId: string | null): ObjectTree {
+  const languageId = monacoLanguageId && (VSCODE_LANGUAGE_IDS[monacoLanguageId] ?? monacoLanguageId);
   const section = (values: ObjectTree) => (isPlainObject(values.editor) ? values.editor : {});
   return settings.languageOverrides
     .filter((override) => languageId !== null && override.languages.includes(languageId))

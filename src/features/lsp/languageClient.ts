@@ -1,6 +1,8 @@
 import { monaco } from "../../infrastructure/monaco/setup";
+import { ensureLanguages } from "../../infrastructure/monaco/syntaxHighlighting";
 import { semanticStyleIndex, semanticTokenLegend } from "../../infrastructure/monaco/semanticTokenStyles";
 import { LanguageServerConnection } from "./connection";
+import type { LanguageServerDefinition } from "./lib/serverDefinitions";
 import { listenLanguageServer, sendToLanguageServer, startLanguageServer, stopLanguageServer } from "./transport";
 
 type Position = { line: number; character: number };
@@ -18,40 +20,7 @@ type MarkedString = string | { language: string; value: string };
 type Hover = { contents: MarkupContent | MarkedString | MarkedString[]; range?: Range };
 type Location = { uri: string; range: Range };
 type LocationLink = { targetUri: string; targetSelectionRange: Range; originSelectionRange?: Range };
-
-/** Mira が動かす言語サーバー（src-tauri の lsp.rs と同じ名前） */
-export type ServerKind = "typescript" | "rust";
-
-type ServerConfig = {
-  /** Monaco の言語。.tsx と .jsx は色の付け方のために別の言語にしてある（syntaxHighlighting） */
-  monacoLanguages: string[];
-  /** 拡張子ごとの、サーバーに伝える言語。ほかのファイルは渡さない */
-  languageIds: Record<string, string>;
-  /**
-   * 外で書き換えられたファイルも、保存したと伝える。rust-analyzer は保存で cargo check を走らせ、
-   * 型エラーの多くはその結果で届く。VS Code は Mira の中で保存したときだけ伝えるが、Mira は AI が外で
-   * 書き換える前提なので、伝えないと型エラーが古いまま残る
-   */
-  saveOnExternalChange: boolean;
-};
-
-const SERVERS: Record<ServerKind, ServerConfig> = {
-  typescript: {
-    monacoLanguages: ["typescript", "tsx", "javascript", "jsx"],
-    languageIds: {
-      ts: "typescript",
-      mts: "typescript",
-      cts: "typescript",
-      tsx: "typescriptreact",
-      js: "javascript",
-      mjs: "javascript",
-      cjs: "javascript",
-      jsx: "javascriptreact",
-    },
-    saveOnExternalChange: false,
-  },
-  rust: { monacoLanguages: ["rust"], languageIds: { rs: "rust" }, saveOnExternalChange: true },
-};
+type TextEdit = { range: Range; newText: string };
 
 const extensionOf = (path: string) => /\.([^./]+)$/.exec(path)?.[1];
 
@@ -142,16 +111,31 @@ function toStyledTokens(data: number[], legend: SemanticTokensLegend, languageId
 /** 打っている間は聞かず、止まってから型エラーを聞き直す */
 const DIAGNOSTICS_DELAY_MS = 300;
 
+export type LanguageClient = {
+  dispose: () => void;
+  notifyFileChanges: (changes: WatchedFileChanges) => void;
+  /** 設定が変わったと伝える。サーバーは workspace/configuration で聞き直す */
+  notifyConfigurationChange: () => void;
+  /** editor.defaultFormatter と照らす ID */
+  formatterId: string | null;
+  /** このファイルを整形できるか（サーバーが動いていて、整形に応じ、このファイルを受け持つ） */
+  canFormat: (model: monaco.editor.ITextModel) => boolean;
+  /** 整形して、結果をモデルに当てる（元に戻せる）。待つ間にモデルが変わったか、取りやめたら当てない */
+  format: (model: monaco.editor.ITextModel, signal: AbortSignal) => Promise<void>;
+};
+
 /**
- * root で言語サーバーを動かし、型エラー・定義へジャンプ・ホバー・意味に基づく色分けを Monaco に足す。
+ * root で言語サーバーを動かし、型エラー・定義へジャンプ・ホバー・意味に基づく色分け・整形を Monaco に足す。
  * TypeScript について、Monaco 組み込みの同じ機能は setup で止めてある。サーバーを起動できなければ、これらは出ない。
+ * サーバーから設定を聞かれたら getConfiguration で答える（VS Code の vscode-languageclient と同じく、設定の同じ名前の所）
  */
 export function startLanguageClient(
-  kind: ServerKind,
+  config: LanguageServerDefinition,
   root: string,
-): { dispose: () => void; notifyFileChanges: (changes: WatchedFileChanges) => void } {
-  const config = SERVERS[kind];
-  const markerOwner = kind;
+  getConfiguration: (section: string | undefined) => unknown,
+): LanguageClient {
+  const markerOwner = `lsp.${config.name}`;
+  let canServerFormat = false;
   /** 拡張子で決める。ほかのファイルは渡さない */
   const languageIdOf = (uri: monaco.Uri): string | null => {
     if (uri.scheme !== "file") return null;
@@ -247,7 +231,10 @@ export function startLanguageClient(
   };
 
   const start = async () => {
-    const started = await startLanguageServer(kind, root);
+    // サーバーがなくても色は付くよう、先に言語を登録する
+    const monacoLanguages = config.monacoLanguages ?? (await ensureLanguages(config.languageIds));
+    if (isDisposed) return;
+    const started = await startLanguageServer(config.spec, root);
     // このフォルダでは動かさない言語
     if (started === null) return;
     serverId = started;
@@ -266,7 +253,9 @@ export function startLanguageClient(
         if (model) applyMarkers(model);
       },
       onRequest: (method, params) => {
-        if (method === "workspace/configuration") return (params as { items: unknown[] }).items.map(() => null);
+        if (method === "workspace/configuration") {
+          return (params as { items: { section?: string }[] }).items.map((item) => getConfiguration(item.section) ?? null);
+        }
         if (method === "workspace/diagnostic/refresh") refreshDiagnostics();
         if (method === "workspace/semanticTokens/refresh") semanticTokensChanged.fire();
         // ファイルの監視の登録（client/registerCapability）は受けるだけ。変更はフォルダの監視から全部伝える
@@ -277,10 +266,15 @@ export function startLanguageClient(
     stopListening = listenLanguageServer(started, (text) => server.receive(text), shutdown);
 
     const { capabilities } = await server.request<{
-      capabilities: { semanticTokensProvider?: { legend: SemanticTokensLegend }; diagnosticProvider?: unknown };
+      capabilities: {
+        semanticTokensProvider?: { legend: SemanticTokensLegend };
+        diagnosticProvider?: unknown;
+        documentFormattingProvider?: unknown;
+      };
     }>("initialize", {
       processId: null,
       rootUri,
+      initializationOptions: config.initializationOptions,
       workspaceFolders: [{ uri: rootUri, name: root.slice(root.lastIndexOf("/") + 1) }],
       capabilities: {
         textDocument: {
@@ -295,9 +289,11 @@ export function startLanguageClient(
           },
           diagnostic: { dynamicRegistration: false },
           publishDiagnostics: { tagSupport: { valueSet: [1, 2] } },
+          formatting: { dynamicRegistration: false },
         },
         workspace: {
           configuration: true,
+          didChangeConfiguration: { dynamicRegistration: false },
           workspaceFolders: true,
           didChangeWatchedFiles: { dynamicRegistration: true },
           diagnostics: { refreshSupport: true },
@@ -307,6 +303,7 @@ export function startLanguageClient(
     });
     if (isDisposed) return;
     canPullDiagnostics = capabilities.diagnosticProvider !== undefined;
+    canServerFormat = Boolean(capabilities.documentFormattingProvider);
     server.notify("initialized", {});
     connection = server;
     for (const model of monaco.editor.getModels()) openDocument(server, model);
@@ -316,7 +313,7 @@ export function startLanguageClient(
         if (!syncedModels.delete(model)) return;
         server.notify("textDocument/didClose", { textDocument: { uri: model.uri.toString() } });
       }),
-      monaco.languages.registerHoverProvider(config.monacoLanguages, {
+      monaco.languages.registerHoverProvider(monacoLanguages, {
         provideHover: async (model, position) => {
           if (!syncedModels.has(model)) return null;
           const hover = await server.request<Hover | null>("textDocument/hover", {
@@ -327,7 +324,7 @@ export function startLanguageClient(
           return { contents: toMarkdown(hover.contents), range: hover.range && toMonacoRange(hover.range) };
         },
       }),
-      monaco.languages.registerDefinitionProvider(config.monacoLanguages, {
+      monaco.languages.registerDefinitionProvider(monacoLanguages, {
         provideDefinition: async (model, position) => {
           if (!syncedModels.has(model)) return null;
           const result = await server.request<Location | Location[] | LocationLink[] | null>(
@@ -346,7 +343,7 @@ export function startLanguageClient(
           );
         },
       }),
-      monaco.languages.registerDocumentSemanticTokensProvider(config.monacoLanguages, {
+      monaco.languages.registerDocumentSemanticTokensProvider(monacoLanguages, {
         onDidChange: semanticTokensChanged.event,
         getLegend: () => ({ tokenTypes: semanticTokenLegend(), tokenModifiers: [] }),
         provideDocumentSemanticTokens: async (model) => {
@@ -370,6 +367,26 @@ export function startLanguageClient(
   });
 
   return {
+    formatterId: config.formatterId,
+    canFormat: (model) => connection !== null && canServerFormat && syncedModels.has(model),
+    format: async (model, signal) => {
+      const server = connection;
+      if (!server || !syncedModels.has(model)) return;
+      const version = model.getVersionId();
+      const { tabSize, insertSpaces } = model.getOptions();
+      const edits = await server.request<TextEdit[] | null>("textDocument/formatting", {
+        textDocument: { uri: model.uri.toString() },
+        options: { tabSize, insertSpaces },
+      });
+      if (!edits?.length || signal.aborted || model.isDisposed() || model.getVersionId() !== version) return;
+      // 1 回の操作として当て、元に戻すで整形前に戻れるようにする
+      model.pushStackElement();
+      model.pushEditOperations([], edits.map((edit) => ({ range: toMonacoRange(edit.range), text: edit.newText })), () => null);
+      model.pushStackElement();
+    },
+    notifyConfigurationChange: () => {
+      connection?.notify("workspace/didChangeConfiguration", { settings: null });
+    },
     notifyFileChanges: ({ paths, removed }) => {
       const server = connection;
       if (!server || paths.length === 0) return;

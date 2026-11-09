@@ -22,7 +22,13 @@ type Buffer = {
   latestReload: number;
 };
 
-export function useEditorTabs(editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>) {
+/** beforeSave は保存の直前に呼ぶ（整形など）。失敗しても保存は続ける */
+export function useEditorTabs(
+  editorRef: RefObject<monaco.editor.IStandaloneCodeEditor | null>,
+  beforeSave: (model: monaco.editor.ITextModel) => Promise<void>,
+) {
+  const beforeSaveRef = useRef(beforeSave);
+  beforeSaveRef.current = beforeSave;
   const [state, dispatch] = useReducer(tabsReducer, initialTabsState);
   const [focusRequest, setFocusRequest] = useState(0);
   const readFile = useFileReader();
@@ -129,9 +135,12 @@ export function useEditorTabs(editorRef: RefObject<monaco.editor.IStandaloneCode
   const saveFile = useCallback(
     (path: string): Promise<boolean> => {
       const previous = saveChains.current.get(path) ?? Promise.resolve(true);
-      const next = previous.then(() => {
+      const next = previous.then(async () => {
         const buffer = buffers.current.get(path);
         if (!buffer) return false;
+        // VS Code と同じく、変更がなくても保存すれば整形する（AI が書いたままのファイルも整えられる）
+        await beforeSaveRef.current(buffer.model).catch((error: unknown) => console.warn(error));
+        if (buffers.current.get(path) !== buffer) return false;
         const isDeleted = stateRef.current.tabs.some((tab) => tab.path === path && tab.isDeleted);
         const isClean = buffer.model.getAlternativeVersionId() === buffer.savedVersionId;
         if (isClean && !isDeleted) return true;

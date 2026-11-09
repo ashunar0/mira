@@ -26,3 +26,14 @@ export function withResets(previous: ObjectTree, next: ObjectTree): ObjectTree {
   }
   return result;
 }
+
+/** "a.b.c" の値。VS Code の getConfiguration と同じく、名前全体の項目を先に探し、なければドットで下へたどる */
+export function getPath(tree: ObjectTree, path: string): unknown {
+  if (path in tree) return tree[path];
+  let current: unknown = tree;
+  for (const segment of path.split(".")) {
+    if (!isPlainObject(current)) return undefined;
+    current = current[segment];
+  }
+  return current;
+}
